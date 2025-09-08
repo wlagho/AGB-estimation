@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, session
 from utils.decorators import login_required, two_factor_verified
 from models.project import Project  
 from datetime import datetime
+import json
 
 agb_bp = Blueprint('agb', __name__)
 
@@ -10,7 +11,7 @@ agb_bp = Blueprint('agb', __name__)
 @two_factor_verified
 def test_route():
     """Test if AGB route is accessible"""
-    print(" AGB test route called - authentication working")
+    print("AGB test route called - authentication working")
     return jsonify({
         'success': True,
         'message': 'AGB route is working!',
@@ -23,32 +24,31 @@ def test_route():
 def debug_model():
     """Test if ML model is working"""
     try:
-        print(" Testing ML model loading...")
+        print("Testing ML model loading...")
         from ml.services.agb_predictor import agb_predictor
         
-        print(f" Model loaded: {agb_predictor.model is not None}")
-        print(f" Scaler loaded: {agb_predictor.scaler is not None}")
+        print(f"Model loaded: {agb_predictor.model is not None}")
+        print(f"Scaler loaded: {agb_predictor.scaler is not None}")
+        print(f"Feature names: {agb_predictor.feature_names}")
         
-        # Test prediction
-        test_features = [
-            822.0, 1212.0, 1510.0, 2958.0, 4034.0, 3024.5,  # S2 bands
-            2804.0, 1292.0, 42.0, 36.8219, -1.2921,          # ALOS, DEM, coords
-            0.32, 0.14, 0.56, 2.17                           # Vegetation indices
-        ]
+        # Test prediction with coordinates (new method)
+        test_lat = -1.2921
+        test_lon = 36.8219
         
-        prediction = agb_predictor.predict(test_features)
-        print(f" Test prediction: {prediction} Mg/ha")
+        prediction = agb_predictor.predict(test_lat, test_lon)
+        print(f"Test prediction: {prediction} Mg/ha")
         
         return jsonify({
             'success': True,
             'message': 'ML model is working!',
             'test_prediction': prediction,
             'model_loaded': agb_predictor.model is not None,
-            'scaler_loaded': agb_predictor.scaler is not None
+            'scaler_loaded': agb_predictor.scaler is not None,
+            'features_count': len(agb_predictor.feature_names) if agb_predictor.feature_names else 0
         })
         
     except Exception as e:
-        print(f" ML model error: {e}")
+        print(f"ML model error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -71,7 +71,7 @@ def project_registration():
 def create_project():
     """Create a new carbon project"""
     try:
-        print(" Creating new project...")
+        print("Creating new project...")
         
         data = request.get_json()
         user_id = session.get('user_id')
@@ -89,7 +89,7 @@ def create_project():
         has_estimates = data.get('estimated_agb') or data.get('estimated_carbon') or data.get('estimated_co2')
         initial_status = 'in_progress' if has_estimates else 'draft'
         
-        print(f" Project creation - Has estimates: {has_estimates}, Status: {initial_status}")
+        print(f"Project creation - Has estimates: {has_estimates}, Status: {initial_status}")
         
         # Create the project
         project = Project.create(
@@ -108,7 +108,7 @@ def create_project():
         )
         
         if project:
-            print(f" Project created successfully with ID: {project.id}, Status: {project.status}")
+            print(f"Project created successfully with ID: {project.id}, Status: {project.status}")
             return jsonify({
                 'success': True,
                 'message': 'Project created successfully!',
@@ -121,7 +121,7 @@ def create_project():
             }), 500
             
     except Exception as e:
-        print(f" Error creating project: {e}")
+        print(f"Error creating project: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -171,7 +171,7 @@ def update_project_status(project_id):
         })
         
     except Exception as e:
-        print(f" Error updating project status: {e}")
+        print(f"Error updating project status: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -208,7 +208,7 @@ def complete_project(project_id):
         })
         
     except Exception as e:
-        print(f" Error completing project: {e}")
+        print(f"Error completing project: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -241,7 +241,7 @@ def get_project(project_id):
         })
         
     except Exception as e:
-        print(f" Error fetching project: {e}")
+        print(f"Error fetching project: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -254,7 +254,7 @@ def test_project_creation():
     """Test project creation with current user session"""
     try:
         user_id = session.get('user_id')
-        print(f" Testing project creation for user_id: {user_id} (type: {type(user_id)})")
+        print(f"Testing project creation for user_id: {user_id} (type: {type(user_id)})")
         
         # Test data
         test_project = Project.create(
@@ -284,7 +284,7 @@ def test_project_creation():
             }), 500
             
     except Exception as e:
-        print(f" Project creation test error: {e}")
+        print(f"Project creation test error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -295,19 +295,38 @@ def test_project_creation():
 @agb_bp.route('/projects', methods=['GET'])
 @login_required
 @two_factor_verified
-def get_user_projects():
-    """Get all projects for the current user"""
+def projects_page():
+    """Show projects page"""
+    return render_template('dashboard/projects.html')
+
+# Add this for the JSON API that your dashboard needs
+@agb_bp.route('/api/projects', methods=['GET'])
+@login_required
+@two_factor_verified
+def get_user_projects_api():
+    """API endpoint to get projects data (for dashboard)"""
     try:
         user_id = session.get('user_id')
+        print(f"DEBUG: Fetching projects for user_id: {user_id}")
+        
         projects = Project.get_by_user(user_id)
+        print(f"DEBUG: Found {len(projects)} projects")
+        
+        # Debug each project
+        for i, project in enumerate(projects):
+            print(f"DEBUG: Project {i}: {project.project_name}, ID: {project.id}")
+        
+        projects_dict = [p.to_dict() for p in projects]
         
         return jsonify({
             'success': True,
-            'projects': [p.to_dict() for p in projects]
+            'projects': projects_dict
         })
         
     except Exception as e:
-        print(f" Error fetching projects: {e}")
+        print(f"ERROR in get_user_projects: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -315,77 +334,126 @@ def get_user_projects():
 
 # ==================== AGB PREDICTION ROUTES ====================
 
+# @agb_bp.route('/predict', methods=['POST'])
+# @login_required  
+# @two_factor_verified
+# def predict_agb():
+#     """API endpoint for AGB prediction"""
+#     print("========== AGB PREDICTION REQUEST START ==========")
+    
+#     try:
+#         # Check if we have JSON data
+#         if not request.is_json:
+#             print("Request is not JSON")
+#             return jsonify({'success': False, 'error': 'Content-Type must be application/json'}), 400
+        
+#         data = request.get_json()
+#         print(f"Received JSON data: {data}")
+        
+#         if not data:
+#             print("No JSON data received")
+#             return jsonify({'success': False, 'error': 'No JSON data received'}), 400
+        
+#         # Extract coordinates
+#         latitude = data.get('latitude')
+#         longitude = data.get('longitude')
+        
+#         print(f"Raw coordinates - lat: {latitude} (type: {type(latitude)}), lng: {longitude} (type: {type(longitude)})")
+        
+#         if latitude is None or longitude is None:
+#             print("Missing coordinates")
+#             return jsonify({'success': False, 'error': 'Missing latitude or longitude'}), 400
+        
+#         # Convert to float
+#         try:
+#             latitude = float(latitude)
+#             longitude = float(longitude)
+#         except (TypeError, ValueError) as e:
+#             print(f"Coordinate conversion error: {e}")
+#             return jsonify({'success': False, 'error': f'Invalid coordinates: {latitude}, {longitude}'}), 400
+        
+#         print(f"Processed coordinates: {latitude}, {longitude}")
+        
+#         # Predict AGB using new predictor that handles feature extraction
+#         print("Loading ML model...")
+#         from ml.services.agb_predictor import agb_predictor
+#         print(f"Model loaded: {agb_predictor.model is not None}")
+        
+#         print("Making prediction with coordinate-based method...")
+#         agb_estimate = agb_predictor.predict(latitude, longitude)
+#         print(f"AGB Prediction: {agb_estimate} Mg/ha")
+        
+#         # Calculate carbon equivalent (using IPCC standard conversion)
+#         carbon_stock = agb_estimate * 0.47  # 47% carbon content
+#         co2_equivalent = carbon_stock * 3.67  # CO2 to carbon ratio
+        
+#         print("========== PREDICTION SUCCESSFUL ==========")
+#         return jsonify({
+#             'success': True,
+#             'agb_estimate': round(agb_estimate, 2),
+#             'carbon_stock': round(carbon_stock, 2),
+#             'co2_equivalent': round(co2_equivalent, 2),
+#             'coordinates': {
+#                 'latitude': latitude,
+#                 'longitude': longitude
+#             },
+#             'units': 'Mg/ha'
+#         })
+        
+#     except Exception as e:
+#         print(f"========== PREDICTION FAILED ==========")
+#         print(f"Error type: {type(e).__name__}")
+#         print(f"Error message: {str(e)}")
+#         import traceback
+#         print(f"Traceback: {traceback.format_exc()}")
+#         return jsonify({
+#             'success': False,
+#             'error': str(e)
+#         }), 400
+# routes/agb.py - Updated predict route
+
 @agb_bp.route('/predict', methods=['POST'])
 @login_required  
 @two_factor_verified
 def predict_agb():
-    """API endpoint for AGB prediction"""
-    print(" ========== AGB PREDICTION REQUEST START ==========")
+    """API endpoint for AGB prediction using ACTUAL model"""
+    print("========== AGB PREDICTION WITH ACTUAL MODEL ==========")
     
     try:
-        # Check if we have JSON data
-        if not request.is_json:
-            print(" Request is not JSON")
-            return jsonify({'success': False, 'error': 'Content-Type must be application/json'}), 400
-        
         data = request.get_json()
-        print(f" Received JSON data: {data}")
-        
-        if not data:
-            print(" No JSON data received")
-            return jsonify({'success': False, 'error': 'No JSON data received'}), 400
-        
-        # Extract coordinates
         latitude = data.get('latitude')
         longitude = data.get('longitude')
+        country = data.get('country', 'kenya')  # Get country from frontend
         
-        print(f" Raw coordinates - lat: {latitude} (type: {type(latitude)}), lng: {longitude} (type: {type(longitude)})")
+        print(f"Coordinates: {latitude}, {longitude}, Country: {country}")
         
-        if latitude is None or longitude is None:
-            print(" Missing coordinates")
-            return jsonify({'success': False, 'error': 'Missing latitude or longitude'}), 400
-        
-        # Convert to float
-        try:
-            latitude = float(latitude)
-            longitude = float(longitude)
-        except (TypeError, ValueError) as e:
-            print(f" Coordinate conversion error: {e}")
-            return jsonify({'success': False, 'error': f'Invalid coordinates: {latitude}, {longitude}'}), 400
-        
-        print(f" Processed coordinates: {latitude}, {longitude}")
-        
-        # Extract features (mock for now)
-        features = extract_features_for_point(latitude, longitude)
-        
-        # Predict AGB
-        print(" Loading ML model...")
+        # Predict AGB using your ACTUAL model with country context
         from ml.services.agb_predictor import agb_predictor
-        print(f" Model loaded: {agb_predictor.model is not None}")
+        agb_estimate = agb_predictor.predict(latitude, longitude, country)
         
-        print(" Making prediction...")
-        agb_estimate = agb_predictor.predict(features)
-        # print(f" AGB Prediction: {agb_estimate} Mg/ha")
+        # Calculate carbon equivalent (using IPCC standard conversion)
+        carbon_stock = agb_estimate * 0.47  # 47% carbon content
+        co2_equivalent = carbon_stock * 3.67  # CO2 to carbon ratio
         
-        # Calculate carbon equivalent
-        carbon_stock = agb_estimate * 0.5
-        co2_equivalent = carbon_stock * 3.67
-        
-        # print(" ========== PREDICTION SUCCESSFUL ==========")
+        print("========== PREDICTION SUCCESSFUL ==========")
         return jsonify({
             'success': True,
             'agb_estimate': round(agb_estimate, 2),
             'carbon_stock': round(carbon_stock, 2),
             'co2_equivalent': round(co2_equivalent, 2),
+            'country': country,
+            'coordinates': {
+                'latitude': latitude,
+                'longitude': longitude
+            },
             'units': 'Mg/ha'
         })
         
     except Exception as e:
-        print(f" ========== PREDICTION FAILED ==========")
-        print(f" Error type: {type(e).__name__}")
-        print(f" Error message: {str(e)}")
+        print(f"========== PREDICTION FAILED ==========")
+        print(f"Error: {str(e)}")
         import traceback
-        print(f" Traceback: {traceback.format_exc()}")
+        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -412,23 +480,24 @@ def predict_polygon():
         centroid_lat = lat_sum / len(coordinates)
         centroid_lng = lng_sum / len(coordinates)
         
-        print(f" Polygon centroid: {centroid_lat}, {centroid_lng}")
+        print(f"Polygon centroid: {centroid_lat}, {centroid_lng}")
         
-        # Predict at centroid
-        features = extract_features_for_point(centroid_lat, centroid_lng)
+        # Predict at centroid using new coordinate-based method
         from ml.services.agb_predictor import agb_predictor
-        agb_estimate = agb_predictor.predict(features)
+        agb_estimate = agb_predictor.predict(centroid_lat, centroid_lng)
         
         # Calculate totals based on area
         area_hectares = data.get('area_hectares', 0)
-        carbon_stock = agb_estimate * 0.5
-        co2_equivalent = carbon_stock * 3.67
+        
+        # Calculate carbon equivalent (using IPCC standard conversion)
+        carbon_stock = agb_estimate * 0.47  # 47% carbon content
+        co2_equivalent = carbon_stock * 3.67  # CO2 to carbon ratio
         
         # Total carbon for entire area
         total_carbon = carbon_stock * area_hectares
         total_co2 = co2_equivalent * area_hectares
         
-        print(f" Area prediction: {agb_estimate} Mg/ha over {area_hectares} ha")
+        print(f"Area prediction: {agb_estimate} Mg/ha over {area_hectares} ha")
         
         return jsonify({
             'success': True,
@@ -442,7 +511,7 @@ def predict_polygon():
         })
         
     except Exception as e:
-        print(f" Polygon prediction failed: {e}")
+        print(f"Polygon prediction failed: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -450,32 +519,182 @@ def predict_polygon():
             'error': str(e)
         }), 400
 
-# ==================== HELPER FUNCTIONS ====================
-
-def extract_features_for_point(lat, lon):
-    """Extract features for a point (mock version)"""
-    # TODO: Implement actual GEE feature extraction
-    return [
-        822.0,    # B2
-        1212.0,   # B3  
-        1510.0,   # B4
-        2958.0,   # B8
-        4034.0,   # B11
-        3024.5,   # B12
-        2804.0,   # HH
-        1292.0,   # HV
-        42.0,     # elevation
-        lon,      # longitude
-        lat,      # latitude
-        0.32,     # NDVI
-        0.14,     # NBR
-        0.56,     # EVI
-        2.17      # SAR_ratio
-    ]
-
 @agb_bp.route('/estimate', methods=['GET'])
 @login_required
 @two_factor_verified
 def estimate_agb_page():
     """Show AGB estimation page"""
     return render_template('agb_estimation.html')
+
+@agb_bp.route('/analytics', methods=['GET'])
+@login_required
+@two_factor_verified
+def analytics_dashboard():
+    """Show analytics dashboard"""
+    return render_template('dashboard/analytics.html')
+
+@agb_bp.route('/api/analytics/project-stats', methods=['GET'])
+@login_required
+@two_factor_verified
+def get_project_stats():
+    """API endpoint for project statistics"""
+    try:
+        user_id = session.get('user_id')
+        projects = Project.get_by_user(user_id)
+        
+        # Calculate statistics
+        total_projects = len(projects)
+        total_area = sum(p.area_hectares or 0 for p in projects)
+        total_carbon = sum((p.estimated_carbon or 0) * (p.area_hectares or 0) for p in projects)
+        avg_agb = sum(p.estimated_agb or 0 for p in projects) / total_projects if total_projects > 0 else 0
+        
+        # Project status distribution
+        status_counts = {}
+        for project in projects:
+            status = project.status or 'draft'
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        # Project type distribution
+        type_counts = {}
+        for project in projects:
+            project_type = project.project_type or 'other'
+            type_counts[project_type] = type_counts.get(project_type, 0) + 1
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_projects': total_projects,
+                'total_area': round(total_area, 2),
+                'total_carbon': round(total_carbon, 2),
+                'avg_agb': round(avg_agb, 2),
+                'status_distribution': status_counts,
+                'type_distribution': type_counts
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+
+@agb_bp.route('/api/analytics/carbon-timeline', methods=['GET'])
+@login_required
+@two_factor_verified
+def get_carbon_timeline():
+    """API endpoint for carbon timeline data"""
+    try:
+        user_id = session.get('user_id')
+        projects = Project.get_by_user(user_id)
+        
+        # Generate timeline data (mock for now - you can enhance with actual dates)
+        timeline_data = []
+        for i, project in enumerate(projects):
+            if project.created_at:
+                timeline_data.append({
+                    'date': project.created_at.strftime('%Y-%m-%d'),
+                    'carbon_stock': (project.estimated_carbon or 0) * (project.area_hectares or 0),
+                    'project_name': project.project_name,
+                    'project_type': project.project_type
+                })
+        
+        return jsonify({
+            'success': True,
+            'timeline': timeline_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+@agb_bp.route('/api/reports/generate-pdf', methods=['GET'])
+@login_required
+@two_factor_verified
+def generate_pdf_report():
+    """Generate PDF report"""
+    try:
+        # For now, return a mock response
+        # In production, you'd use libraries like ReportLab or WeasyPrint
+        return jsonify({
+            'success': True,
+            'message': 'PDF report generation would be implemented here'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@agb_bp.route('/api/reports/generate-csv', methods=['GET'])
+@login_required
+@two_factor_verified
+def generate_csv_report():
+    """Generate CSV report"""
+    try:
+        user_id = session.get('user_id')
+        projects = Project.get_by_user(user_id)
+        
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Project Name', 'Type', 'Area (ha)', 'AGB (Mg/ha)', 'Carbon Stock (t C)', 'CO₂ Equivalent (t CO₂e)', 'Status'])
+        
+        # Write data
+        for project in projects:
+            writer.writerow([
+                project.project_name,
+                project.project_type,
+                project.area_hectares or 0,
+                project.estimated_agb or 0,
+                project.estimated_carbon or 0,
+                project.estimated_co2 or 0,
+                project.status or 'draft'
+            ])
+        
+        from flask import make_response
+        response = make_response(output.getvalue())
+        response.headers['Content-Disposition'] = 'attachment; filename=carbon-projects-export.csv'
+        response.headers['Content-type'] = 'text/csv'
+        return response
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@agb_bp.route('/api/reports/generate-json', methods=['GET'])
+@login_required
+@two_factor_verified
+def generate_json_report():
+    """Generate JSON report"""
+    try:
+        user_id = session.get('user_id')
+        projects = Project.get_by_user(user_id)
+        
+        report_data = {
+            'export_date': datetime.now().isoformat(),
+            'total_projects': len(projects),
+            'projects': [p.to_dict() for p in projects]
+        }
+        
+        from flask import make_response
+        response = make_response(json.dumps(report_data, indent=2))
+        response.headers['Content-Disposition'] = 'attachment; filename=carbon-projects-export.json'
+        response.headers['Content-type'] = 'application/json'
+        return response
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
