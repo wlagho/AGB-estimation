@@ -6,8 +6,13 @@ from psycopg2 import sql
 from dotenv import load_dotenv
 
 load_dotenv()
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
+# SUPABASE_URL = os.getenv('SUPABASE_URL')
+# SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
 def test_supabase_connection():
     """Test connection to Supabase database"""
@@ -38,7 +43,7 @@ def test_supabase_connection():
         return True
         
     except Exception as e:
-        print(f"❌ Failed to connect to Supabase: {e}")
+        print(f" Failed to connect to Supabase: {e}")
         return False
 
 def create_tables():
