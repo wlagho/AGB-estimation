@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SHCAP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-hero {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(239, 68, 68, 0.05) 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .admin-table {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .admin-table th {
+        background: var(--bg-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        border: none;
+        padding: 1rem;
+    }
+    
+    .admin-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .admin-table tbody tr {
+        transition: background 0.2s ease;
+    }
+    
+    .admin-table tbody tr:hover {
+        background: var(--bg-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="admin-hero">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill mb-3">
+                <i class="bi bi-shield-fill-check me-1"></i>Administrator Access
+            </span>
+            <h1 class="display-5 fw-bold mb-2">System Administration</h1>
+            <p class="lead text-muted mb-0">Manage users, monitor system health, and configure platform settings</p>
+        </div>
+        <div class="col-md-4 text-end d-none d-md-block">
+            <i class="bi bi-speedometer" style="font-size: 5rem; color: #dc2626; opacity: 0.2;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">Total</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ users|length }}</h3>
+                <p class="text-muted mb-2">Registered Users</p>
+                <div class="stat-progress">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-purple" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                    <span class="badge bg-info-subtle text-info">Active</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ users|selectattr('role', 'equalto', 'researcher')|list|length }}</h3>
+                <p class="text-muted mb-2">Researchers</p>
+                <div class="stat-progress">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (users|selectattr('role', 'equalto', 'researcher')|list|length / users|length * 100) if users|length > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <span class="badge bg-success-subtle text-success">Active</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ users|selectattr('role', 'equalto', 'project_developer')|list|length }}</h3>
+                <p class="text-muted mb-2">Project Developers</p>
+                <div class="stat-progress">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (users|selectattr('role', 'equalto', 'project_developer')|list|length / users|length * 100) if users|length > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger">System</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h3>
+                <p class="text-muted mb-2">Administrators</p>
+                <div class="stat-progress">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar" style="background: #dc2626;" role="progressbar" style="width: {{ (users|selectattr('role', 'equalto', 'admin')|list|length / users|length * 100) if users|length > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row g-4">
+    <div class="col-12">
+        <!-- User Management Table -->
+        <div class="content-card">
+            <div class="content-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1">User Management</h5>
+                        <p class="text-muted small mb-0">Monitor and manage all platform users</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-filter me-1"></i>Filter
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download me-1"></i>Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="content-card-body p-0">
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Organization</th>
+                                <th>2FA</th>
+                                <th>Joined</th>
+                                <th>Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                            {{ u.first_name[0] }}{{ u.last_name[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ u.first_name }} {{ u.last_name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{ u.email }}</span>
+                                </td>
+                                <td>
+                                    {% if u.role == 'admin' %}
+                                        <span class="badge bg-danger px-3 py-2">
+                                            <i class="bi bi-shield-fill-check me-1"></i>Admin
+                                        </span>
+                                    {% elif u.role == 'researcher' %}
+                                        <span class="badge bg-info px-3 py-2">
+                                            <i class="bi bi-mortarboard-fill me-1"></i>Researcher
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success px-3 py-2">
+                                            <i class="bi bi-briefcase-fill me-1"></i>Developer
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{ u.organization }}</span>
+                                </td>
+                                <td>
+                                    {% if u.two_factor_enabled %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-x-circle"></i>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted small">{{ u.created_at.strftime('%b %d, %Y') if u.created_at else 'N/A' }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small">{{ u.last_login.strftime('%b %d, %I:%M %p') if u.last_login else 'Never' }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Cards -->
+<div class="row g-4 mt-2">
+    <!-- Security Settings -->
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-shield-lock text-danger me-2"></i>Your Security
+                </h5>
+            </div>
+            <div class="content-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="fw-semibold mb-1">Two-Factor Authentication</h6>
+                        <p class="text-muted small mb-0">Protect your admin account</p>
+                    </div>
+                    {% if user.two_factor_enabled %}
+                        <span class="badge bg-success px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>Enabled
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning px-3 py-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Disabled
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if user.two_factor_enabled %}
+                    <form method="POST" action="{{ url_for('auth.disable_2fa') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-x-circle me-2"></i>Disable 2FA
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{{ url_for('auth.enable_2fa') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-shield-check me-2"></i>Enable 2FA
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-activity text-success me-2"></i>System Health
+                </h5>
+            </div>
+            <div class="content-card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-database-fill text-success me-3 fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">Database</div>
+                            <small class="text-muted">PostgreSQL Connection</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>Connected
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-envelope-fill text-success me-3 fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">Email Service</div>
+                            <small class="text-muted">SMTP Configuration</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>Active
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-gear-fill text-info me-3 fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">Platform Version</div>
+                            <small class="text-muted">Current Build</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-info-subtle text-info px-3 py-2">
+                        SHCAP v1.0
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
