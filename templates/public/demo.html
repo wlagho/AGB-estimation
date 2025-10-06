@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Demo - SHCAP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .demo-hero {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(56, 239, 125, 0.05) 100%);
+        border-radius: 24px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .demo-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .feature-demo-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        height: 100%;
+        transition: all 0.4s ease;
+    }
+    
+    .feature-demo-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+    
+    .feature-demo-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stats-demo-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stats-demo-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .benefit-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .benefit-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+    }
+    
+    .benefit-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .cta-demo {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 24px;
+        padding: 3rem;
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-demo::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -20%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="demo-hero position-relative">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill mb-3">
+                <i class="bi bi-play-circle-fill me-1"></i>Interactive Demo
+            </span>
+            <h1 class="display-4 fw-bold mb-3">Experience SHCAP in Action</h1>
+            <p class="lead text-muted mb-4">
+                Explore the powerful features of our SmallHolder Carbon Assessment Platform. 
+                See how our ML-powered tools transform carbon assessment and biomass calculations.
+            </p>
+        </div>
+        <div class="col-lg-4 text-center d-none d-lg-block">
+            <i class="bi bi-play-circle" style="font-size: 8rem; color: #667eea; opacity: 0.2;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="feature-demo-card">
+            <div class="feature-demo-icon" style="background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%); color: #11998e;">
+                <i class="bi bi-cpu-fill"></i>
+            </div>
+            <h4 class="fw-bold mb-3">ML-Powered AGB Calculator</h4>
+            <p class="text-muted mb-4">
+                Our advanced Above Ground Biomass calculator leverages state-of-the-art machine learning 
+                algorithms to estimate carbon stocks with unprecedented accuracy.
+            </p>
+            
+            <div class="mb-4">
+                <h6 class="fw-semibold mb-3">Key Capabilities:</h6>
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <span>Satellite imagery integration and analysis</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <span>Field measurement validation and verification</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <span>Multiple estimation methodologies supported</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <span>Comprehensive export to CSV, PDF, and Excel</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-success w-100" disabled>
+                <i class="bi bi-lock-fill me-2"></i>Try Calculator (Login Required)
+            </button>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="feature-demo-card">
+            <div class="feature-demo-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                <i class="bi bi-kanban-fill"></i>
+            </div>
+            <h4 class="fw-bold mb-3">Project Management Suite</h4>
+            <p class="text-muted mb-4">
+                Comprehensive tools for managing carbon assessment initiatives across multiple 
+                locations with real-time tracking and automated reporting.
+            </p>
+            
+            <div class="mb-4">
+                <h6 class="fw-semibold mb-3">Key Capabilities:</h6>
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>Multi-site project tracking and coordination</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>Farmer enrollment and management system</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>Real-time progress monitoring dashboards</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>Automated compliance report generation</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary w-100" disabled>
+                <i class="bi bi-lock-fill me-2"></i>View Projects (Login Required)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Sample Stats -->
+<div class="card border-0 shadow-sm mb-5" style="border-radius: 20px;">
+    <div class="card-header bg-white border-0 pt-4">
+        <div class="text-center">
+            <h3 class="fw-bold mb-2">Sample Data Insights</h3>
+            <p class="text-muted mb-0">Real-world impact metrics from our platform</p>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stats-demo-card">
+                    <div class="display-4 fw-bold mb-2" style="color: #11998e;">2,450</div>
+                    <p class="text-muted mb-0 fw-semibold">Hectares Assessed</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-demo-card">
+                    <div class="display-4 fw-bold mb-2" style="color: #667eea;">15,680</div>
+                    <p class="text-muted mb-0 fw-semibold">Tons of Carbon</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-demo-card">
+                    <div class="display-4 fw-bold mb-2" style="color: #f5576c;">342</div>
+                    <p class="text-muted mb-0 fw-semibold">Active Farmers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-demo-card">
+                    <div class="display-4 fw-bold mb-2" style="color: #4facfe;">28</div>
+                    <p class="text-muted mb-0 fw-semibold">Ongoing Projects</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits Section -->
+<div class="mb-5">
+    <div class="text-center mb-5">
+        <h3 class="fw-bold mb-3">Platform Benefits</h3>
+        <p class="lead text-muted">Why researchers and project developers choose SHCAP</p>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Secure & Compliant</h5>
+                <p class="text-muted mb-0">
+                    Role-based access control with optional two-factor authentication. 
+                    Enterprise-grade security for sensitive research data and farmer information.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="bi bi-arrows-move"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Seamless Integration</h5>
+                <p class="text-muted mb-0">
+                    Import field data from multiple sources and export results in various formats. 
+                    API access for custom integrations with your existing workflows.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Real-Time Analytics</h5>
+                <p class="text-muted mb-0">
+                    Interactive dashboards with live data updates, predictive insights, and 
+                    comprehensive visualization tools for data-driven decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-demo position-relative">
+    <div class="position-relative" style="z-index: 2;">
+        <h2 class="display-5 fw-bold mb-3">Ready to Get Started?</h2>
+        <p class="lead mb-4 opacity-90">
+            Register for a free account and unlock the full potential of SHCAP
+        </p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-person-plus me-2"></i>Create Your Account
+        </a>
+        <div class="mt-4">
+            <small class="opacity-75">No credit card required • Full access • Cancel anytime</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
