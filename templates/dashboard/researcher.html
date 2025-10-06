@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Researcher Dashboard - SHCAP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-speedometer2 text-success"></i> Researcher Dashboard</h1>
+        <p class="lead">Welcome, {{ user.first_name }}! Access your research tools and AGB estimation projects.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-data display-1 text-success"></i>
+                <h5 class="card-title mt-3">Active Projects</h5>
+                <p class="display-6">0</p>
+                <p class="text-muted">Research projects in progress</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up display-1 text-primary"></i>
+                <h5 class="card-title mt-3">AGB Estimates</h5>
+                <p class="display-6">0</p>
+                <p class="text-muted">Total biomass calculations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text display-1 text-info"></i>
+                <h5 class="card-title mt-3">Reports</h5>
+                <p class="display-6">0</p>
+                <p class="text-muted">Generated reports</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-list-task"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center py-4">No recent activity</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" disabled>
+                        <i class="bi bi-plus-circle"></i> New Project
+                    </button>
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="bi bi-calculator"></i> Calculate AGB
+                    </button>
+                    <button class="btn btn-outline-info" disabled>
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Security</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Two-Factor Auth:</strong></p>
+                {% if user.two_factor_enabled %}
+                    <span class="badge bg-success mb-2">Enabled</span>
+                    <form method="POST" action="{{ url_for('auth.disable_2fa') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                            Disable 2FA
+                        </button>
+                    </form>
+                {% else %}
+                    <span class="badge bg-warning mb-2">Disabled</span>
+                    <form method="POST" action="{{ url_for('auth.enable_2fa') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                            Enable 2FA
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}SHCAP - SmallHolder Carbon Assessment Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-landing {
+        position: relative;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(56, 239, 125, 0.05) 100%);
+    }
+    
+    .hero-landing::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(56, 239, 125, 0.1) 0%, transparent 50%);
+        z-index: 0;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-image {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .floating-animation {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    .feature-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2.5rem;
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .feature-icon-purple {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        color: #667eea;
+    }
+    
+    .feature-icon-green {
+        background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%);
+        color: #11998e;
+    }
+    
+    .feature-icon-blue {
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+        color: #4facfe;
+    }
+    
+    .role-card {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 24px;
+        padding: 3rem;
+        height: 100%;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .role-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    
+    .role-card:hover {
+        transform: scale(1.02);
+        border-color: #667eea;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+    }
+    
+    .role-card:hover::after {
+        opacity: 1;
+    }
+    
+    /* .role-card-researcher { */
+        /* border-color: #11998e; */
+    /*} */
+    
+    .role-card-researcher:hover {
+        border-color: #11998e;
+        box-shadow: 0 20px 60px rgba(17, 153, 142, 0.2);
+    }
+    
+    .check-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .check-item i {
+        position: absolute;
+        left: 0;
+        font-size: 1.25rem;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 30px;
+        padding: 4rem 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .stats-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.2);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+        font-weight: 600;
+    }
+    
+    .trust-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+    
+    .trust-icon-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+    
+    .trust-icon-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .trust-icon-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .btn-hero {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    @media (max-width: 768px) {
+        .hero-landing {
+            min-height: auto;
+            padding: 4rem 0;
+        }
+        
+        .feature-card,
+        .role-card {
+            margin-bottom: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-landing">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content mb-5 mb-lg-0">
+                <div class="mb-4">
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                        <i class="bi bi-stars me-1"></i>
+                        Powered by Machine Learning
+                    </span>
+                </div>
+                <h1 class="display-3 fw-bold mb-4">
+                    Transforming Carbon Assessment for 
+                    <span class="gradient-text">Smallholder Farmers</span>
+                </h1>
+                <p class="lead text-muted mb-4">
+                    Accurate Above Ground Biomass estimation using cutting-edge ML technology. 
+                    Empowering sustainable agriculture and climate action across farming communities.
+                </p>
+                <div class="d-flex gap-3 flex-wrap mb-4">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-hero">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+                    </a>
+                    <a href="{{ url_for('public.demo') }}" class="btn btn-outline-secondary btn-hero">
+                        <i class="bi bi-play-circle me-2"></i>Watch Demo
+                    </a>
+                </div>
+                <div class="d-flex gap-4 flex-wrap">
+                    <div class="stats-badge">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>ML-Powered Analysis</span>
+                    </div>
+                    <div class="stats-badge">
+                        <i class="bi bi-shield-check text-success"></i>
+                        <span>Verified Standards</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 hero-image">
+                <div class="floating-animation">
+                    <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=400&fit=crop" 
+                         alt="Sustainable farming" 
+                         class="img-fluid rounded-4 shadow-lg"
+                         style="border-radius: 30px !important;">
+                </div>
+                <div class="position-absolute" style="top: 10%; right: 10%; z-index: 10;">
+                    <div class="card border-0 shadow-lg" style="border-radius: 20px; backdrop-filter: blur(10px); background: rgba(255,255,255,0.95);">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle" style="width: 50px; height: 50px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-graph-up-arrow text-white fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Carbon Credits</div>
+                                    <div class="text-success small">+24% This Month</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 my-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill mb-3">
+                Platform Features
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Everything You Need for Carbon Assessment</h2>
+            <p class="lead text-muted">Comprehensive tools designed for accurate biomass measurement and carbon credit generation</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon feature-icon-purple mx-auto">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h4 class="mb-3 fw-bold">ML-Powered AGB Estimation</h4>
+                    <p class="text-muted mb-0">
+                        Advanced machine learning algorithms analyze satellite imagery and field data to provide accurate Above Ground Biomass calculations with verified methodologies.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon feature-icon-green mx-auto">
+                        <i class="bi bi-globe-americas"></i>
+                    </div>
+                    <h4 class="mb-3 fw-bold">Carbon Project Management</h4>
+                    <p class="text-muted mb-0">
+                        Manage multiple carbon projects simultaneously. Track farmer participation, monitor progress, and generate compliance reports aligned with international standards.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon feature-icon-blue mx-auto">
+                        <i class="bi bi-bar-chart-line"></i>
+                    </div>
+                    <h4 class="mb-3 fw-bold">Real-Time Analytics</h4>
+                    <p class="text-muted mb-0">
+                        Comprehensive dashboards with real-time data visualization, predictive analytics, and detailed reporting capabilities for informed decision-making.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Roles Section -->
+<section class="py-5 my-5" style="background: var(--bg-color);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill mb-3">
+                Choose Your Role
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Built for Every Stakeholder</h2>
+            <p class="lead text-muted">Whether you're conducting research or developing projects, we have the right tools for you</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="role-card role-card-researcher">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                             style="width: 60px; height: 60px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="bi bi-mortarboard-fill text-white fs-3"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2">For Researchers</h3>
+                        <p class="text-muted">Advanced tools for academic and field research</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="fw-semibold">Advanced AGB estimation algorithms</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="fw-semibold">Satellite and field data integration</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="fw-semibold">Collaborative research workspaces</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="fw-semibold">Custom export and reporting formats</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="fw-semibold">API access for data analysis</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-person-plus me-2"></i>Join as Researcher
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="role-card">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                             style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="bi bi-briefcase-fill text-white fs-3"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2">For Project Developers</h3>
+                        <p class="text-muted">Comprehensive project management suite</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-primary"></i>
+                            <span class="fw-semibold">Multi-project portfolio management</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-primary"></i>
+                            <span class="fw-semibold">Farmer network coordination</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-primary"></i>
+                            <span class="fw-semibold">Compliance report generation</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-primary"></i>
+                            <span class="fw-semibold">Real-time project monitoring</span>
+                        </div>
+                        <div class="check-item">
+                            <i class="bi bi-check-circle-fill text-primary"></i>
+                            <span class="fw-semibold">Carbon credit verification tools</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-briefcase me-2"></i>Join as Developer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 my-5">
+    <div class="container">
+        <div class="cta-section text-white text-center position-relative">
+            <div class="position-relative" style="z-index: 2;">
+                <h2 class="display-4 fw-bold mb-3">Ready to Transform Carbon Assessment?</h2>
+                <p class="lead mb-4 opacity-90">
+                    Join hundreds of researchers and project developers making climate action accessible for smallholder farmers worldwide.
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Start Your Journey
+                    </a>
+                    <a href="{{ url_for('public.demo') }}" class="btn btn-outline-light btn-lg px-5">
+                        <i class="bi bi-play-circle me-2"></i>Explore Demo
+                    </a>
+                </div>
+                <div class="mt-4">
+                    <small class="opacity-75">No credit card required • Free trial available • Cancel anytime</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Section -->
+<section class="py-5 mb-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-6 fw-bold mb-3">Why Teams Choose SHCAP</h2>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="trust-icon trust-icon-success">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Secure & Reliable</h5>
+                    <p class="text-muted">
+                        Enterprise-grade security with two-factor authentication, encrypted data storage, and regular security audits to protect your sensitive research data.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="trust-icon trust-icon-warning">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Lightning Fast</h5>
+                    <p class="text-muted">
+                        Optimized ML algorithms deliver results in seconds, not hours. Real-time data processing ensures you always have the latest insights at your fingertips.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="trust-icon trust-icon-info">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Collaborative Platform</h5>
+                    <p class="text-muted">
+                        Built for teamwork. Share projects, coordinate with field teams, and collaborate with stakeholders seamlessly across the entire carbon assessment lifecycle.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

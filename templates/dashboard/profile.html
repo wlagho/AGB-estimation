@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - SHCAP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="bi bi-person-circle"></i> User Profile</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Personal Information</h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ user.first_name }} {{ user.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Organization:</strong></td>
+                                <td>{{ user.organization }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ user.phone_number if user.phone_number else 'Not provided' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Account Details</h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Role:</strong></td>
+                                <td>
+                                    {% if user.role == 'admin' %}
+                                        <span class="badge bg-danger">Administrator</span>
+                                    {% elif user.role == 'researcher' %}
+                                        <span class="badge bg-info">Researcher</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Project Developer</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Login:</strong></td>
+                                <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2FA Status:</strong></td>
+                                <td>
+                                    {% if user.two_factor_enabled %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Enabled
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-x-circle"></i> Disabled
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Security Settings</h5>
+                        <p class="text-muted">Manage your account security</p>
+                        {% if user.two_factor_enabled %}
+                            <form method="POST" action="{{ url_for('auth.disable_2fa') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-shield-x"></i> Disable Two-Factor Authentication
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('auth.enable_2fa') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-success">
+                                    <i class="bi bi-shield-check"></i> Enable Two-Factor Authentication
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Password</h5>
+                        <p class="text-muted">Change your password</p>
+                        <a href="{{ url_for('auth.reset_password_request') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-key"></i> Request Password Reset
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

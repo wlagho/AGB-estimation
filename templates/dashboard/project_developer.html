@@ -1,0 +1,694 @@
+{% extends "base.html" %}
+
+{% block title %}Project Developer Dashboard - SHCAP{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner with Image -->
+<div class="hero-section position-relative overflow-hidden mb-5">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-image-overlay"></div>
+    <div class="container-fluid position-relative">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-7">
+                <div class="hero-content">
+                    <span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+                        <i class="bi bi-check-circle-fill me-1"></i>Active Session
+                    </span>
+                    <h1 class="display-4 fw-bold mb-3">Welcome back, {{ user.first_name }}</h1>
+                    <p class="lead text-muted mb-4">Monitor and manage your carbon sequestration projects. Track Above Ground Biomass measurements, generate compliance reports, and contribute to global climate action.</p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-success btn-lg px-4" disabled>
+                            <i class="bi bi-plus-circle me-2"></i>Start New Project
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg px-4" disabled>
+                            <i class="bi bi-play-circle me-2"></i>Watch Tutorial
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-illustration">
+                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&h=400&fit=crop" alt="Smallholder farming" class="img-fluid rounded-4 shadow-lg" style="object-fit: cover; height: 350px; width: 100%;">
+                    <div class="floating-stat">
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-graph-up-arrow text-success" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Carbon Verified</h6>
+                                        <p class="text-success mb-0 small">0 tCO2e Sequestered</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="container-fluid mb-5">
+    <div class="row g-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon stat-icon-purple">
+                            <i class="bi bi-folder-fill"></i>
+                        </div>
+                        <span class="badge bg-light text-dark">0% change</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">0</h3>
+                    <p class="text-muted mb-2">Total Projects</p>
+                    <div class="stat-progress">
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-purple" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon stat-icon-green">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <span class="badge bg-success-subtle text-success">Ready</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">0</h3>
+                    <p class="text-muted mb-2">Completed Assessments</p>
+                    <div class="stat-progress">
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon stat-icon-orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <span class="badge bg-warning-subtle text-warning">Active</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">0</h3>
+                    <p class="text-muted mb-2">In Progress</p>
+                    <div class="stat-progress">
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon stat-icon-blue">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <span class="badge bg-info-subtle text-info">Network</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">0</h3>
+                    <p class="text-muted mb-2">Participating Farmers</p>
+                    <div class="stat-progress">
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="container-fluid">
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Project Overview -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold mb-1">Project Portfolio</h5>
+                            <p class="text-muted small mb-0">Overview of your carbon assessment initiatives</p>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary active">All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Active</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Completed</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-card-body">
+                    <div class="empty-state">
+                        <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&h=300&fit=crop" alt="Forest landscape" class="empty-state-image mb-4">
+                        <div class="empty-state-icon mb-3">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">No Projects Yet</h5>
+                        <p class="text-muted mb-4">Start your journey by creating your first carbon assessment project. Our ML-powered AGB calculator will help you measure and verify biomass data.</p>
+                        <button class="btn btn-success px-4" disabled>
+                            <i class="bi bi-plus-lg me-2"></i>Create First Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="content-card">
+                <div class="content-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold mb-1">Recent Activity</h5>
+                            <p class="text-muted small mb-0">Latest assessments and measurements</p>
+                        </div>
+                        <a href="#" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                </div>
+                <div class="content-card-body">
+                    <div class="empty-state-mini">
+                        <i class="bi bi-calendar-check mb-3"></i>
+                        <p class="text-muted mb-0">No recent activity</p>
+                        <p class="text-muted small">Your AGB assessments will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="fw-bold mb-0">Quick Actions</h5>
+                </div>
+                <div class="content-card-body p-3">
+                    <div class="d-grid gap-2">
+                        <button class="action-btn action-btn-primary" disabled>
+                            <div class="action-btn-content">
+                                <div class="action-btn-icon">
+                                    <i class="bi bi-plus-circle"></i>
+                                </div>
+                                <div class="action-btn-text">
+                                    <div class="fw-semibold">New Project</div>
+                                    <small class="text-muted">Start carbon assessment</small>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                        
+                        <button class="action-btn action-btn-secondary" disabled>
+                            <div class="action-btn-content">
+                                <div class="action-btn-icon">
+                                    <i class="bi bi-person-plus"></i>
+                                </div>
+                                <div class="action-btn-text">
+                                    <div class="fw-semibold">Add Farmer</div>
+                                    <small class="text-muted">Register participant</small>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                        
+                        <button class="action-btn action-btn-secondary" disabled>
+                            <div class="action-btn-content">
+                                <div class="action-btn-icon">
+                                    <i class="bi bi-calculator"></i>
+                                </div>
+                                <div class="action-btn-text">
+                                    <div class="fw-semibold">Calculate AGB</div>
+                                    <small class="text-muted">ML-powered analysis</small>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                        
+                        <button class="action-btn action-btn-secondary" disabled>
+                            <div class="action-btn-content">
+                                <div class="action-btn-icon">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </div>
+                                <div class="action-btn-text">
+                                    <div class="fw-semibold">Generate Report</div>
+                                    <small class="text-muted">Export compliance docs</small>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                        
+                        <button class="action-btn action-btn-secondary" disabled>
+                            <div class="action-btn-content">
+                                <div class="action-btn-icon">
+                                    <i class="bi bi-cloud-upload"></i>
+                                </div>
+                                <div class="action-btn-text">
+                                    <div class="fw-semibold">Upload Data</div>
+                                    <small class="text-muted">Import measurements</small>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="fw-bold mb-0">Account Security</h5>
+                </div>
+                <div class="content-card-body">
+                    <div class="security-item">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-3">
+                                <div class="security-icon">
+                                    <i class="bi bi-shield-lock"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-semibold mb-1">Two-Factor Authentication</h6>
+                                    <p class="text-muted small mb-0">Add extra security to your account</p>
+                                </div>
+                            </div>
+                            {% if user.two_factor_enabled %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Enabled
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Disabled
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if user.two_factor_enabled %}
+                            <form method="POST" action="{{ url_for('auth.disable_2fa') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="bi bi-x-circle me-2"></i>Disable 2FA
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('auth.enable_2fa') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-shield-check me-2"></i>Enable 2FA
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Cards -->
+            <div class="content-card info-card-green mb-4">
+                <div class="content-card-body">
+                    <div class="d-flex gap-3">
+                        <div class="info-card-icon">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">About SHCAP</h6>
+                            <p class="small mb-0">Our platform uses Machine Learning algorithms to calculate Above Ground Biomass, helping smallholder farmers participate in carbon credit markets and climate action initiatives.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card info-card-blue">
+                <div class="content-card-body">
+                    <div class="d-flex gap-3">
+                        <div class="info-card-icon">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">Carbon Standards</h6>
+                            <p class="small mb-0">Aligned with international carbon verification standards including VCS and Gold Standard protocols for credible carbon credit generation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease;
+}
+
+.dashboard-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.hero-section {
+    background: var(--card-bg);
+    border-radius: 0 0 30px 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-bg-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(56, 239, 125, 0.1) 0%, transparent 50%);
+}
+
+.hero-illustration {
+    position: relative;
+}
+
+.floating-stat {
+    position: absolute;
+    bottom: -20px;
+    right: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.stat-card-body {
+    padding: 1.5rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-icon-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+.stat-icon-orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stat-icon-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+.content-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.content-card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.content-card-body {
+    padding: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-state-image {
+    width: 100%;
+    max-width: 500px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    opacity: 0.5;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+}
+
+.empty-state-mini {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.empty-state-mini i {
+    font-size: 3rem;
+    color: var(--text-secondary);
+    opacity: 0.3;
+}
+
+.action-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+}
+
+.action-btn:hover:not(:disabled) {
+    transform: translateX(5px);
+    border-color: #667eea;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.action-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.action-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.action-btn-secondary .action-btn-icon {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+.security-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.info-card-green {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.info-card-blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.info-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.dashboard-footer {
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    margin-top: 4rem;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #667eea;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-3px);
+}
+
+.bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.bg-success-subtle { background-color: rgba(56, 239, 125, 0.1); }
+.bg-warning-subtle { background-color: rgba(240, 147, 251, 0.1); }
+.bg-info-subtle { background-color: rgba(79, 172, 254, 0.1); }
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .content-card {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .empty-state-image {
+    opacity: 0.3;
+}
+
+[data-theme="dark"] .action-btn-secondary .action-btn-icon {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .stat-card-body {
+        padding: 1rem;
+    }
+    
+    .content-card-body {
+        padding: 1.5rem;
+    }
+    
+    .floating-stat {
+        display: none;
+    }
+}
+
+/* Loading animations */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.loading {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(to right, transparent 0%, rgba(102, 126, 234, 0.2) 50%, transparent 100%);
+    background-size: 1000px 100%;
+}
+
+/* Accessibility improvements */
+.btn:focus,
+.action-btn:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .dashboard-header,
+    .action-btn,
+    .dashboard-footer {
+        display: none;
+    }
+}
+</style>
+
+{% endblock %}
