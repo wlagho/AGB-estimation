@@ -1,8 +1,59 @@
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, redirect, url_for
 from utils.decorators import login_required, two_factor_verified, role_required
 from models.user import User
+from models.project import Project
 
 dashboard_bp = Blueprint('dashboard', __name__)
+
+@dashboard_bp.route('/project-developer')
+@login_required
+@two_factor_verified
+def project_developer():
+    """Project Developer Dashboard"""
+    user_id = session.get('user_id')
+    user = User.get_by_id(user_id)
+    
+    if not user:
+        return redirect(url_for('auth.login'))
+    
+    # Get user's projects
+    projects = Project.get_by_user(user_id)
+    
+    # Get project statistics
+    stats = Project.get_user_stats(user_id)
+    
+    return render_template(
+        'dashboard/project_developer.html',
+        user=user,
+        projects=projects,
+        stats=stats
+    )
+
+@dashboard_bp.route('/farmer')
+@login_required
+@two_factor_verified
+def farmer():
+    """Farmer Dashboard"""
+    user_id = session.get('user_id')
+    user = User.get_by_id(user_id)
+    
+    if not user:
+        return redirect(url_for('auth.login'))
+    
+    return render_template('dashboard/farmer.html', user=user)
+
+@dashboard_bp.route('/verifier')
+@login_required
+@two_factor_verified
+def verifier():
+    """Verifier Dashboard"""
+    user_id = session.get('user_id')
+    user = User.get_by_id(user_id)
+    
+    if not user:
+        return redirect(url_for('auth.login'))
+    
+    return render_template('dashboard/verifier.html', user=user)
 
 @dashboard_bp.route('/')
 @login_required
