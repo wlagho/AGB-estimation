@@ -164,8 +164,8 @@
                         </div>
                         <h5 class="fw-bold mb-2">No Projects Yet</h5>
                         <p class="text-muted mb-4">Start your journey by creating your first carbon assessment project. Our ML-powered AGB calculator will help you measure and verify biomass data.</p>
-                        <button class="btn btn-success px-4" disabled>
-                            <i class="bi bi-plus-lg me-2"></i>Create First Project
+                        <button class="btn btn-success px-4" onclick="window.location.href='{{ url_for('agb.project_registration') }}'">
+                            <i class="bi bi-plus-circle me-2"></i>Start New Project
                         </button>
                     </div>
                 </div>
@@ -214,7 +214,7 @@
                             <i class="bi bi-arrow-right"></i>
                         </button>
                         
-                        <button class="action-btn action-btn-secondary" disabled>
+                        <!-- <button class="action-btn action-btn-secondary" disabled>
                             <div class="action-btn-content">
                                 <div class="action-btn-icon">
                                     <i class="bi bi-person-plus"></i>
@@ -225,7 +225,7 @@
                                 </div>
                             </div>
                             <i class="bi bi-arrow-right"></i>
-                        </button>
+                        </button> -->
                         
                         <button class="action-btn action-btn-secondary" disabled>
                             <div class="action-btn-content">
@@ -265,6 +265,69 @@
                             </div>
                             <i class="bi bi-arrow-right"></i>
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGB Estimation Card -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-calculator text-success me-2"></i>AGB Estimation Tool
+                    </h5>
+                </div>
+                <div class="content-card-body">
+                    <p class="text-muted mb-3">Click anywhere on the map below to select a location, then click "Estimate AGB" to get biomass predictions.</p>
+                    
+                    <!-- Map Container -->
+                    <div id="map" style="height: 300px; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--border-color);"></div>
+                    
+                    <!-- Coordinates Display -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Latitude</strong></label>
+                            <input type="text" class="form-control" id="latitude" readonly placeholder="Click on map">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Longitude</strong></label>
+                            <input type="text" class="form-control" id="longitude" readonly placeholder="Click on map">
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" id="estimateBtn">
+                            <i class="bi bi-calculator me-2"></i>
+                            <span id="btnText">Estimate AGB</span>
+                            <div id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                        
+                        <button class="btn btn-outline-primary" id="testNairobiBtn">
+                            <i class="bi bi-lightning me-2"></i>Quick Test (Nairobi)
+                        </button>
+                    </div>
+                    
+                    <!-- Results -->
+                    <div id="results" class="mt-3 d-none">
+                        <div class="alert alert-success">
+                            <h6 class="fw-bold mb-2">🌿 Biomass Estimate</h6>
+                            <div class="row">
+                                <div class="col-4">
+                                    <small class="text-muted">AGB</small>
+                                    <div class="fw-bold fs-5"><span id="agbValue">0</span> <small>Mg/ha</small></div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Carbon</small>
+                                    <div class="fw-bold fs-5"><span id="carbonValue">0</span> <small>t C</small></div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">CO₂</small>
+                                    <div class="fw-bold fs-5"><span id="co2Value">0</span> <small>t CO₂e</small></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -690,5 +753,429 @@ body {
     }
 }
 </style>
+
+<script>
+// ============== GOOGLE MAPS & AGB ESTIMATION ==============
+console.log(" Initializing Google Maps and AGB Estimation...");
+
+let map;
+let marker;
+
+// Load Google Maps
+function loadGoogleMaps() {
+    console.log(" Loading Google Maps API...");
+    
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCvNNZBIxhg1pM1Kxq07aOAV61lKkuZVi8&callback=initMapReal`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = function() {
+        console.error(" Failed to load Google Maps API");
+        alert("Google Maps failed to load. Check your API key.");
+    };
+    document.head.appendChild(script);
+}
+
+// Initialize map after Google Maps loads
+function initMapReal() {
+    console.log(" Google Maps API loaded, creating map...");
+    
+    const eastAfrica = { lat: -1.2921, lng: 36.8219 };
+    
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: eastAfrica,
+        mapTypeId: "terrain",
+        streetViewControl: false,
+        fullscreenControl: true
+    });
+
+    console.log(" Google Map created successfully");
+
+    // Add click listener for the map
+    map.addListener("click", (e) => {
+        console.log(" Map clicked:", e.latLng.lat(), e.latLng.lng());
+        placeMarkerAndUpdate(e.latLng);
+    });
+}
+
+// Place marker and update coordinates
+function placeMarkerAndUpdate(location) {
+    if (marker) {
+        marker.setMap(null);
+    }
+    
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        draggable: true,
+        title: "Selected location"
+    });
+
+    marker.addListener("dragend", (e) => {
+        console.log(" Marker dragged to:", e.latLng.lat(), e.latLng.lng());
+        updateCoordinates(e.latLng);
+    });
+
+    updateCoordinates(location);
+}
+
+// Update coordinate inputs
+function updateCoordinates(latLng) {
+    document.getElementById("latitude").value = latLng.lat().toFixed(6);
+    document.getElementById("longitude").value = latLng.lng().toFixed(6);
+    console.log(" Coordinates updated");
+}
+
+// AGB Estimation Function
+function estimateAGB() {
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+    
+    console.log("🔍 Estimating AGB for:", latitude, longitude);
+    
+    if (!latitude || !longitude) {
+        alert('Please click on the map to select a location first.');
+        return;
+    }
+    
+    const btn = document.getElementById('estimateBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    
+    // Show loading
+    btnText.textContent = 'Estimating...';
+    btnSpinner.classList.remove('d-none');
+    btn.disabled = true;
+    
+    fetch('/agb/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude)
+        })
+    })
+    .then(response => {
+        console.log(" Response status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log(" Response data:", data);
+        
+        if (data.success) {
+            document.getElementById('agbValue').textContent = data.agb_estimate;
+            document.getElementById('carbonValue').textContent = data.carbon_stock;
+            document.getElementById('co2Value').textContent = data.co2_equivalent;
+            
+            document.getElementById('results').classList.remove('d-none');
+            console.log(" Prediction successful! AGB:", data.agb_estimate);
+            
+            // Add carbon market assessment
+            assessCarbonMarket(data.agb_estimate);
+        } else {
+            throw new Error(data.error || 'Unknown error from server');
+        }
+    })
+    .catch(error => {
+        console.error(" Fetch error:", error);
+        alert('Error: ' + error.message);
+    })
+    .finally(() => {
+        btnText.textContent = 'Estimate AGB';
+        btnSpinner.classList.add('d-none');
+        btn.disabled = false;
+    });
+}
+
+// Carbon Market Assessment
+function assessCarbonMarket(agbEstimate) {
+    const assessmentDiv = document.getElementById('results');
+    
+    let assessment = '';
+    let badgeClass = '';
+    
+    if (agbEstimate >= 50) {
+        assessment = ' Excellent biomass! High potential for carbon markets. Eligible for premium carbon credits.';
+        badgeClass = 'success';
+    } else if (agbEstimate >= 20) {
+        assessment = ' Good biomass. Eligible for carbon programs with proper monitoring and verification.';
+        badgeClass = 'info';
+    } else if (agbEstimate >= 10) {
+        assessment = ' Moderate biomass. Consider agroforestry improvements to increase carbon sequestration potential.';
+        badgeClass = 'warning';
+    } else {
+        assessment = ' Low biomass. Focus on land restoration and soil improvement before carbon market participation.';
+        badgeClass = 'danger';
+    }
+    
+    const assessmentHTML = `
+        <div class="alert alert-${badgeClass} mt-3">
+            <h6> Carbon Market Assessment</h6>
+            <p class="mb-2">${assessment}</p>
+            <small>Estimated carbon value: $${(agbEstimate * 0.5 * 3.67 * 15).toFixed(2)} per hectare/year</small>
+        </div>
+    `;
+    
+    assessmentDiv.innerHTML += assessmentHTML;
+}
+
+// Test with Nairobi coordinates
+function testNairobi() {
+    console.log(" Testing with Nairobi coordinates...");
+    
+    const nairobi = new google.maps.LatLng(-1.2921, 36.8219);
+    placeMarkerAndUpdate(nairobi);
+    
+    map.setCenter(nairobi);
+    map.setZoom(10);
+    
+    console.log(" Nairobi coordinates set");
+}
+
+console.log(" Enhanced Project Developer Dashboard Loading...");
+
+// ============== QUICK ACTIONS HANDLERS ==============
+function handleNewProject() {
+    console.log(" New Project clicked");
+    window.location.href = '/agb/project/register';
+}
+
+function handleAddFarmer() {
+    console.log(" Add Farmer clicked");
+    alert('Add Farmer feature coming soon! This will open a form to register participating farmers in your carbon projects.');
+}
+
+
+function handleCalculateAGB() {
+    console.log(" Calculate AGB clicked");
+    const agbTool = document.querySelector('#map').parentElement.parentElement;
+    if (agbTool) {
+        agbTool.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        agbTool.style.transition = 'all 0.3s ease';
+        agbTool.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.5)';
+        setTimeout(() => {
+            agbTool.style.boxShadow = '';
+        }, 2000);
+    }
+}
+
+function handleGenerateReport() {
+    console.log(" Generate Report clicked");
+    const projectCount = Number("{{ stats.total_projects if stats else 0 }}");
+    
+    if (projectCount === 0) {
+        alert('You need to create at least one project before generating reports.');
+        return;
+    }
+    
+    const modal = createReportModal();
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        document.body.removeChild(modal);
+        alert(' Report generated! (This is a placeholder - implement actual PDF generation)');
+    }, 2000);
+}
+
+function handleUploadData() {
+    console.log(" Upload Data clicked");
+    alert('Upload Data feature coming soon! This will allow you to import CSV/Excel files with biomass measurements.');
+}
+
+function createReportModal() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 16px; text-align: center;">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 mb-0">Generating your carbon verification report...</p>
+        </div>
+    `;
+    
+    return modal;
+}
+
+// ============== LOAD USER PROJECTS ==============
+async function loadUserProjects() {
+    console.log(" Loading user projects...");
+    
+    try {
+        const response = await fetch('/agb/projects');
+        const data = await response.json();
+        
+        if (data.success && data.projects.length > 0) {
+            console.log(` Loaded ${data.projects.length} projects`);
+            displayProjects(data.projects);
+        } else {
+            console.log("ℹ No projects found");
+        }
+    } catch (error) {
+        console.error(" Error loading projects:", error);
+    }
+}
+
+function displayProjects(projects) {
+    const portfolioCard = document.querySelector('.content-card');
+    const emptyState = portfolioCard.querySelector('.empty-state');
+    
+    if (emptyState) {
+        emptyState.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Area (ha)</th>
+                            <th>AGB (Mg/ha)</th>
+                            <th>CO₂e (t)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectTableBody">
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        const tbody = document.getElementById('projectTableBody');
+        
+        projects.forEach(project => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="fw-semibold">${project.project_name}</div>
+                    <small class="text-muted">Created ${new Date(project.created_at).toLocaleDateString()}</small>
+                </td>
+                <td><span class="badge bg-info">${formatProjectType(project.project_type)}</span></td>
+                <td>${project.region}, ${project.country.toUpperCase()}</td>
+                <td>${project.area_hectares.toFixed(2)}</td>
+                <td>${project.estimated_agb ? project.estimated_agb.toFixed(2) : 'N/A'}</td>
+                <td>${project.estimated_co2 ? project.estimated_co2.toFixed(2) : 'N/A'}</td>
+                <td><span class="badge bg-${getStatusColor(project.status)}">${project.status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewProject(${project.id})">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+}
+
+function formatProjectType(type) {
+    return type.replace(/_/g, ' ').split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'draft': 'secondary',
+        'in_progress': 'warning',
+        'completed': 'success',
+        'verified': 'primary'
+    };
+    return colors[status] || 'secondary';
+}
+
+function viewProject(projectId) {
+    console.log(` Viewing project ${projectId}`);
+    alert(`View project details (Project ID: ${projectId})\nThis will open a detailed project page.`);
+}
+
+// ============== UPDATE STATS DYNAMICALLY ==============
+function updateStatCards() {
+    // Only update stat cards if stats object is available
+    if (typeof stats !== 'undefined' && stats) {
+        const statValues = {
+            totalProjects: stats.total_projects || 0,
+            completedProjects: stats.completed_projects || 0,
+            inProgressProjects: stats.in_progress_projects || 0,
+            totalFarmers: 0
+        };
+        
+        // Update the stat cards
+        const statCards = document.querySelectorAll('.stat-card-body h3');
+        if (statCards.length >= 4) {
+            statCards[0].textContent = statValues.totalProjects;
+            statCards[1].textContent = statValues.completedProjects;
+            statCards[2].textContent = statValues.inProgressProjects;
+            statCards[3].textContent = statValues.totalFarmers;
+        }
+        
+        // Update progress bars
+        const progressBars = document.querySelectorAll('.progress-bar');
+        const totalProjects = statValues.totalProjects || 1;
+        
+        if (progressBars.length >= 4) {
+            progressBars[0].style.width = '100%';
+            progressBars[1].style.width = `${(statValues.completedProjects / totalProjects) * 100}%`;
+            progressBars[2].style.width = `${(statValues.inProgressProjects / totalProjects) * 100}%`;
+            progressBars[3].style.width = '0%';
+        }
+    }
+}
+
+// ============== INITIALIZE EVERYTHING ==============
+document.addEventListener('DOMContentLoaded', () => {
+    console.log(" DOM loaded, setting up dashboard...");
+    
+    // Wire up Quick Action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    
+    actionButtons.forEach((btn) => {
+        btn.disabled = false;
+        
+        const btnText = btn.querySelector('.fw-semibold').textContent;
+        
+        if (btnText.includes('New Project')) {
+            btn.onclick = handleNewProject;
+        } else if (btnText.includes('Add Farmer')) {
+            btn.onclick = handleAddFarmer;
+        } else if (btnText.includes('Calculate AGB')) {
+            btn.onclick = handleCalculateAGB;
+        } else if (btnText.includes('Generate Report')) {
+            btn.onclick = handleGenerateReport;
+        } else if (btnText.includes('Upload Data')) {
+            btn.onclick = handleUploadData;
+        }
+    });
+    
+    // Enable "Start New Project" button in empty state
+    const startProjectBtn = document.querySelector('.empty-state .btn-success');
+    if (startProjectBtn) {
+        startProjectBtn.onclick = handleNewProject;
+    }
+    
+    // Update stat cards
+    updateStatCards();
+    
+    // Load user's projects
+    loadUserProjects();
+    
+    console.log(" Dashboard initialized!");
+});
+</script>
 
 {% endblock %}
