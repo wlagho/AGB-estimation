@@ -29,7 +29,7 @@ class Project:
                estimated_agb=None, estimated_carbon=None, estimated_co2=None):
         """Create a new project - let database generate SERIAL ID"""
         
-        print(f"🔄 Creating project for user_id: {user_id}")
+        print(f" Creating project for user_id: {user_id}")
         
         # Keep user_id as string
         user_id_str = str(user_id) if user_id else None
@@ -38,7 +38,7 @@ class Project:
         if isinstance(boundary_coordinates, (list, dict)):
             boundary_coordinates = json.dumps(boundary_coordinates)
         
-        # ✅ FIX: Remove ID from INSERT - let database generate SERIAL ID automatically
+        #  FIX: Remove ID from INSERT - let database generate SERIAL ID automatically
         query = """
             INSERT INTO projects (
                 user_id, project_name, project_type, country, region,
@@ -58,17 +58,17 @@ class Project:
             estimated_agb, estimated_carbon, estimated_co2, 'draft'
         )
         
-        print(f"📝 Executing query with {len(params)} parameters")
-        print(f"📝 Project Name: {project_name}")
-        print(f"📝 User ID: {user_id_str}")
+        print(f" Executing query with {len(params)} parameters")
+        print(f" Project Name: {project_name}")
+        print(f" User ID: {user_id_str}")
         
         result = execute_query(query, params, fetch_one=True)
         
         if result:
-            print(f"✅ Project created successfully with ID: {result['id']}")
+            print(f" Project created successfully with ID: {result['id']}")
             return Project(**result)
         
-        print("❌ Project creation failed - no result returned")
+        print(" Project creation failed - no result returned")
         return None
 
     @staticmethod
