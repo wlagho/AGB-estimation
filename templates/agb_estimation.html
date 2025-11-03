@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}AGB Estimation - SHCAP{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>🌿 Above-Ground Biomass Estimation</h1>
+            <p class="lead">Estimate biomass and carbon stock for your land</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📍 Enter Coordinates</h5>
+                </div>
+                <div class="card-body">
+                    <form id="agbForm">
+                        <div class="mb-3">
+                            <label for="latitude" class="form-label">Latitude</label>
+                            <input type="number" step="any" class="form-control" id="latitude" 
+                                   placeholder="e.g., -1.2921" required>
+                            <div class="form-text">Enter latitude between -12° and 6° (East Africa)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="longitude" class="form-label">Longitude</label>
+                            <input type="number" step="any" class="form-control" id="longitude" 
+                                   placeholder="e.g., 36.8219" required>
+                            <div class="form-text">Enter longitude between 28° and 42° (East Africa)</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="estimateBtn">
+                            <span id="btnText">Estimate AGB</span>
+                            <div id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📊 Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="results" class="d-none">
+                        <div class="alert alert-success">
+                            <h6>🌿 Biomass Estimate</h6>
+                            <p class="mb-1"><strong>AGB:</strong> <span id="agbValue">0</span> Mg/ha</p>
+                            <p class="mb-1"><strong>Carbon Stock:</strong> <span id="carbonValue">0</span> tons C</p>
+                            <p class="mb-0"><strong>CO₂ Equivalent:</strong> <span id="co2Value">0</span> tons CO₂e</p>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6>💰 Carbon Market Potential</h6>
+                            <p class="mb-0">Based on your estimate, this area may qualify for carbon credit programs.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="noResults">
+                        <p class="text-muted">Enter coordinates to get biomass estimation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('agbForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const results = document.getElementById('results');
+    const noResults = document.getElementById('noResults');
+    
+    // Show loading state
+    btnText.textContent = 'Estimating...';
+    btnSpinner.classList.remove('d-none');
+    
+    // Send prediction request
+    fetch('/agb/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update results
+            document.getElementById('agbValue').textContent = data.agb_estimate;
+            document.getElementById('carbonValue').textContent = data.carbon_stock;
+            document.getElementById('co2Value').textContent = data.co2_equivalent;
+            
+            // Show results
+            results.classList.remove('d-none');
+            noResults.classList.add('d-none');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button
+        btnText.textContent = 'Estimate AGB';
+        btnSpinner.classList.add('d-none');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block title %}Register Carbon Project - SHCAP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="hero-section mb-5">
+                <div class="hero-content text-center py-5">
+                    <span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+                        <i class="bi bi-rocket-takeoff-fill me-1"></i>Project Setup
+                    </span>
+                    <h1 class="display-5 fw-bold mb-3">Register Your Carbon Project</h1>
+                    <p class="lead text-muted mb-4">Begin your carbon verification journey. Draw your project boundary and provide basic information to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Project Form -->
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-clipboard-data text-success me-2"></i>Project Information
+                    </h5>
+                </div>
+                <div class="content-card-body">
+                    <form id="projectForm">
+                        <div class="row g-3">
+                            <!-- Project Name -->
+                            <div class="col-12">
+                                <label for="projectName" class="form-label fw-semibold">Project Name</label>
+                                <input type="text" class="form-control" id="projectName" placeholder="e.g., Kiamumbi Smallholder Agroforestry Project" required>
+                                <div class="form-text">Choose a descriptive name for your carbon project</div>
+                            </div>
+
+                            <!-- Project Type -->
+                            <div class="col-md-6">
+                                <label for="projectType" class="form-label fw-semibold">Project Type</label>
+                                <select class="form-select" id="projectType" required>
+                                    <option value="">Select project type</option>
+                                    <option value="agroforestry">Agroforestry</option>
+                                    <option value="regenerative_agriculture">Regenerative Agriculture</option>
+                                    <option value="forest_conservation">Forest Conservation</option>
+                                    <option value="reforestation">Reforestation</option>
+                                    <option value="sustainable_farming">Sustainable Farming</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Project Area -->
+                            <div class="col-md-6">
+                                <label for="projectArea" class="form-label fw-semibold">Project Area (hectares)</label>
+                                <input type="number" class="form-control" id="projectArea" step="0.01" min="0.1" placeholder="0.00" readonly>
+                                <div class="form-text">Area will be calculated from your drawn boundary</div>
+                            </div>
+
+                            <!-- Location Details -->
+                            <div class="col-md-6">
+                                <label for="country" class="form-label fw-semibold">Country</label>
+                                <select class="form-select" id="country" required>
+                                    <option value="">Select country</option>
+                                    <option value="kenya">Kenya</option>
+                                    <option value="tanzania">Tanzania</option>
+                                    <option value="uganda">Uganda</option>
+                                    <option value="rwanda">Rwanda</option>
+                                    <option value="ethiopia">Ethiopia</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="region" class="form-label fw-semibold">Region/County</label>
+                                <input type="text" class="form-control" id="region" placeholder="e.g., Central Province, Kiambu County" required>
+                            </div>
+
+                            <!-- Project Description -->
+                            <div class="col-12">
+                                <label for="projectDescription" class="form-label fw-semibold">Project Description</label>
+                                <textarea class="form-control" id="projectDescription" rows="4" placeholder="Describe your project goals, participating farmers, and expected outcomes..."></textarea>
+                                <div class="form-text">This information will be used for carbon verification</div>
+                            </div>
+
+                            <!-- Estimated Carbon Benefits (Auto-calculated) -->
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6 class="fw-bold mb-2">
+                                        <i class="bi bi-graph-up-arrow me-2"></i>Estimated Carbon Benefits
+                                    </h6>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <small class="text-muted">Estimated AGB</small>
+                                            <div class="fw-bold fs-5"><span id="estimatedAGB">0</span> <small>Mg/ha</small></div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Carbon Stock</small>
+                                            <div class="fw-bold fs-5"><span id="estimatedCarbon">0</span> <small>t C</small></div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">CO₂ Equivalent</small>
+                                            <div class="fw-bold fs-5"><span id="estimatedCO2">0</span> <small>t CO₂e</small></div>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Based on average biomass in your project area</small>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success btn-lg w-100" id="createProjectBtn">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <span id="btnText">Create Carbon Project</span>
+                                    <div id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Map with Drawing -->
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-map text-success me-2"></i>Project Boundary
+                    </h5>
+                </div>
+                <div class="content-card-body">
+                    <p class="text-muted mb-3">Click on the map to select a location for single-point AGB estimation, or draw a polygon boundary for area-based calculation.</p>
+                    
+                    <!-- Map Controls -->
+                    <div class="d-flex gap-2 mb-3 flex-wrap">
+                        <button class="btn btn-outline-primary btn-sm" id="placeMarkerBtn">
+                            <i class="bi bi-geo-alt me-1"></i>Place Marker
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" id="clearMapBtn">
+                            <i class="bi bi-eraser me-1"></i>Clear All
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" id="autoEstimateBtn">
+                            <i class="bi bi-calculator me-1"></i>Estimate AGB
+                        </button>
+                    </div>
+
+                    <!-- Map Container -->
+                    <div id="projectMap" style="height: 400px; border-radius: 12px; border: 1px solid var(--border-color);"></div>
+
+                    <!-- Coordinates Display -->
+                    <div class="mt-3">
+                        <small class="text-muted">Boundary Area: <span id="boundaryArea">0.00</span> hectares</small>
+                        <br>
+                        <small class="text-muted">Coordinates: <span id="coordinatesDisplay">Click on map</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvNNZBIxhg1pM1Kxq07aOAV61lKkuZVi8&libraries=drawing"></script>
+
+<script>
+console.log(" Project Registration Page Loaded");
+
+let map;
+let marker;
+let selectedCoordinates = null;
+let drawingManager;
+let polygon = null;
+//let boundaryArea = 0;
+
+// Initialize Google Maps
+function initMap() {
+    console.log(" Initializing Google Maps...");
+    
+    const eastAfrica = { lat: -1.2921, lng: 36.8219 };
+    
+    map = new google.maps.Map(document.getElementById("projectMap"), {
+        zoom: 6,
+        center: eastAfrica,
+        mapTypeId: "terrain"
+    });
+    
+    // Add click listener for marker placement
+    map.addListener("click", (e) => {
+        placeMarker(e.latLng);
+    });
+    
+    console.log(" Map initialized");
+}
+// Initialize drawing tools
+function initDrawingManager() {
+    drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: null,
+        drawingControl: true,
+        drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [
+                google.maps.drawing.OverlayType.POLYGON
+            ]
+        },
+        polygonOptions: {
+            fillColor: '#28a745',
+            fillOpacity: 0.2,
+            strokeWeight: 2,
+            strokeColor: '#28a745',
+            clickable: true,
+            editable: true,
+            zIndex: 1
+        }
+    });
+    
+    drawingManager.setMap(map);
+    
+    // Listen for polygon completion
+    google.maps.event.addListener(drawingManager, 'polygoncomplete', function(poly) {
+        // Clear existing polygon
+        if (polygon) {
+            polygon.setMap(null);
+        }
+        
+        polygon = poly;
+        calculatePolygonArea(poly);
+        
+        // Also place a marker at the center for AGB estimation
+        const bounds = new google.maps.LatLngBounds();
+        poly.getPath().forEach(function(latLng) {
+            bounds.extend(latLng);
+        });
+        const center = bounds.getCenter();
+        placeMarker(center);
+    });
+}
+
+// Calculate polygon area in hectares
+function calculatePolygonArea(poly) {
+    const area = google.maps.geometry.spherical.computeArea(poly.getPath());
+    const areaHectares = area / 10000; // Convert from m² to hectares
+    
+    document.getElementById('boundaryArea').textContent = areaHectares.toFixed(2);
+    document.getElementById('projectArea').value = areaHectares.toFixed(2);
+    
+    boundaryArea = areaHectares;
+    console.log(`📐 Polygon area: ${areaHectares.toFixed(2)} hectares`);
+}
+// Place marker on map
+function placeMarker(location) {
+    console.log(" Placing marker at:", location.lat(), location.lng());
+    
+    if (marker) {
+        marker.setMap(null);
+    }
+    
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        draggable: true
+    });
+    
+    selectedCoordinates = {
+        latitude: location.lat(),
+        longitude: location.lng()
+    };
+    
+    updateCoordinatesDisplay();
+    
+    marker.addListener("dragend", (e) => {
+        selectedCoordinates = {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng()
+        };
+        updateCoordinatesDisplay();
+    });
+}
+
+// Update coordinates display
+function updateCoordinatesDisplay() {
+    if (selectedCoordinates) {
+        document.getElementById('coordinatesDisplay').textContent = 
+            `${selectedCoordinates.lat.toFixed(6)}, ${selectedCoordinates.lng.toFixed(6)}`;
+    }
+}
+
+// Clear map
+document.getElementById('clearMapBtn').addEventListener('click', () => {
+    if (marker) {
+        marker.setMap(null);
+        marker = null;
+    }
+    selectedCoordinates = null;
+    document.getElementById('coordinatesDisplay').textContent = 'Click on map';
+    document.getElementById('boundaryArea').textContent = '0.00';
+    document.getElementById('projectArea').value = '';
+    
+    // Clear estimates
+    document.getElementById('estimatedAGB').textContent = '0';
+    document.getElementById('estimatedCarbon').textContent = '0';
+    document.getElementById('estimatedCO2').textContent = '0';
+});
+
+// Estimate AGB button
+document.getElementById('autoEstimateBtn').addEventListener('click', async () => {
+    if (!selectedCoordinates) {
+        alert('Please place a marker on the map first');
+        return;
+    }
+    
+    console.log(" Estimating AGB...");
+    const btn = document.getElementById('autoEstimateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Calculating...';
+    
+    try {
+        const response = await fetch('/agb/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(selectedCoordinates)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(" AGB estimated:", data);
+            
+            // Update estimates
+            document.getElementById('estimatedAGB').textContent = data.agb_estimate;
+            document.getElementById('estimatedCarbon').textContent = data.carbon_stock;
+            document.getElementById('estimatedCO2').textContent = data.co2_equivalent;
+            
+            // Store for project creation
+            window.agbEstimates = {
+                agb: data.agb_estimate,
+                carbon: data.carbon_stock,
+                co2: data.co2_equivalent
+            };
+            
+            alert(' AGB estimated successfully!');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error(" Error:", error);
+        alert('Error estimating AGB: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-calculator me-1"></i>Estimate AGB';
+    }
+});
+
+// Form submission
+document.getElementById('projectForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    console.log(" Submitting project form...");
+    
+    // Validate
+    const projectName = document.getElementById('projectName').value;
+    const projectType = document.getElementById('projectType').value;
+    const country = document.getElementById('country').value;
+    const region = document.getElementById('region').value;
+    
+    if (!projectName || !projectType || !country || !region) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (!selectedCoordinates) {
+        alert('Please place a marker on the map');
+        return;
+    }
+    
+    // Get estimates
+    const agb = parseFloat(document.getElementById('estimatedAGB').textContent) || 0;
+    const carbon = parseFloat(document.getElementById('estimatedCarbon').textContent) || 0;
+    const co2 = parseFloat(document.getElementById('estimatedCO2').textContent) || 0;
+    
+    if (agb === 0) {
+        const confirm = window.confirm('You haven\'t estimated AGB yet. Do you want to continue without estimates?');
+        if (!confirm) return;
+    }
+    
+    // Show loading
+    const btn = document.getElementById('createProjectBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    
+    btnText.textContent = 'Creating...';
+    btnSpinner.classList.remove('d-none');
+    btn.disabled = true;
+    
+    // Prepare data
+    const projectData = {
+        project_name: projectName,
+        project_type: projectType,
+        country: country,
+        region: region,
+        description: document.getElementById('projectDescription').value,
+        area_hectares: parseFloat(document.getElementById('projectArea').value) || 1.0,
+        boundary_coordinates: [selectedCoordinates],
+        estimated_agb: agb,
+        estimated_carbon: carbon,
+        estimated_co2: co2
+    };
+    
+    console.log(" Sending project data:", projectData);
+    
+    try {
+        const response = await fetch('/agb/project/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(projectData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(" Project created:", data.project);
+            alert(' Project created successfully!');
+            
+            // Redirect to dashboard
+            window.location.href = '/dashboard/project-developer';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error(" Error:", error);
+        alert('Error creating project: ' + error.message);
+    } finally {
+        btnText.textContent = 'Create Carbon Project';
+        btnSpinner.classList.add('d-none');
+        btn.disabled = false;
+    }
+});
+
+// Initialize map when page loads
+window.addEventListener('load', () => {
+    initMap();
+    console.log(" Project registration ready!");
+});
+</script>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.05) 0%, rgba(25, 135, 84, 0.1) 100%);
+    border-radius: 24px;
+}
+
+#projectMap {
+    cursor: crosshair;
+}
+
+.btn-sm {
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
