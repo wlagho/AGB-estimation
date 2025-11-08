@@ -11,14 +11,14 @@ class AGBPredictor:
     def load_model(self):
         """Load the trained model and scaler"""
         try:
-            model_path = os.path.join(os.path.dirname(__file__), '../models/agb_final_thesis_model.pkl')
-            scaler_path = os.path.join(os.path.dirname(__file__), '../models/production_scaler_final.pkl')
+            model_path = os.path.join(os.path.dirname(__file__), '../models/shcap_production_model_cleaned.pkl')
+            scaler_path = os.path.join(os.path.dirname(__file__), '../models/shcap_production_scaler_cleaned.pkl')
             
             self.model = joblib.load(model_path)
             self.scaler = joblib.load(scaler_path)
-            print("✅ AGB Model loaded successfully")
+            print(" AGB Model loaded successfully")
         except Exception as e:
-            print(f"❌ Error loading model: {e}")
+            print(f" Error loading model: {e}")
     
     def predict(self, features):
         """Predict AGB for given features"""
