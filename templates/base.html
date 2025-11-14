@@ -10,6 +10,8 @@
         /* Global Theme Variables */
         :root {
             --primary-color: #667eea;
+            --primary-light: rgba(102, 126, 234, 0.1);
+            --primary-dark: #5a6fd8;
             --secondary-color: #764ba2;
             --success-color: #11998e;
             --success-light: #38ef7d;
@@ -17,6 +19,7 @@
             --warning-light: #f5576c;
             --info-color: #4facfe;
             --info-light: #00f2fe;
+            --danger-color: #dc3545;
             --dark-color: #212529;
             
             --bg-color: #f8f9fa;
@@ -24,7 +27,11 @@
             --text-primary: #1a1a1a;
             --text-secondary: #6c757d;
             --border-color: #e9ecef;
-            --navbar-bg: #ffffff;
+            --sidebar-bg: #ffffff;
+            --sidebar-width: 280px;
+            --sidebar-width-minimized: 70px;
+            --header-height: 70px;
+            --transition-speed: 0.3s;
         }
 
         [data-theme="dark"] {
@@ -33,87 +40,458 @@
             --text-primary: #e6edf3;
             --text-secondary: #8b949e;
             --border-color: #30363d;
-            --navbar-bg: #161b22;
+            --sidebar-bg: #161b22;
         }
 
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        /* FIXED: Only apply transitions to specific properties to avoid performance issues */
+        body, .sidebar, .main-content, .nav-link, .btn, .card, .theme-toggle, .sidebar-toggle-btn {
+            transition: all var(--transition-speed) ease;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* FIXED: Mobile Overlay Backdrop */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar.minimized {
+            width: var(--sidebar-width-minimized);
+        }
+
+        /* FIXED: Smoother transitions for minimized elements */
+        .sidebar.minimized .sidebar-brand-text,
+        .sidebar.minimized .nav-section-label,
+        .sidebar.minimized .nav-link span:not(.nav-tooltip),
+        .sidebar.minimized .nav-link .badge,
+        .sidebar.minimized .user-details {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease, width 0.3s ease;
+        }
+
+        /* FIXED: Better theme toggle handling when minimized */
+        .sidebar.minimized .sidebar-footer .btn span {
+            display: none;
+        }
+
+        .sidebar.minimized .sidebar-footer .btn i {
+            margin: 0 !important;
+        }
+
+        .sidebar.minimized .sidebar-brand {
+            justify-content: center;
+            padding: 0;
+        }
+
+        .sidebar.minimized .nav-link {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar.minimized .user-info {
+            justify-content: center;
+        }
+
+        .sidebar.minimized .sidebar-footer .btn {
+            padding: 0.5rem;
+            justify-content: center;
+        }
+
+        /* FIXED: Better sidebar header spacing */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--sidebar-bg);
+            position: relative;
+            min-height: 88px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar.minimized .sidebar-header {
+            padding: 1.5rem 0.5rem;
+            justify-content: center;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            flex: 1;
+            max-width: calc(100% - 50px);
+        }
+
+        .sidebar.minimized .sidebar-brand {
+            max-width: 100%;
+        }
+
+        .sidebar-brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--success-color) 0%, var(--success-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+            white-space: nowrap;
+        }
+
+        /* FIXED: Better positioned toggle button */
+        .sidebar-toggle-btn {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .sidebar.minimized .sidebar-toggle-btn {
+            right: 50%;
+            transform: translate(50%, -50%) rotate(180deg);
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-label {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .sidebar.minimized .nav-link {
+            padding: 0.75rem;
+            gap: 0;
+        }
+
+        .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .sidebar.minimized .nav-link:hover {
+            transform: translateX(0);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            min-width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link .badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .sidebar.minimized .nav-link .badge {
+            display: none;
+        }
+
+        /* FIXED: Better tooltip positioning and visibility */
+        .nav-link .nav-tooltip {
+            position: fixed;
+            background: var(--dark-color);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1001;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-link .nav-tooltip::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: var(--dark-color);
+        }
+
+        .sidebar.minimized .nav-link:hover .nav-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--sidebar-bg);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            flex: 1;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: var(--bg-color);
+        }
+
+        .main-content.sidebar-minimized {
+            margin-left: var(--sidebar-width-minimized);
+        }
+
+        .content-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            min-height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .page-title {
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin: 0;
             color: var(--text-primary);
         }
 
-        /* Navbar Styles */
-        .navbar {
-            background-color: var(--navbar-bg) !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--text-primary) !important;
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 1rem;
         }
 
-        .navbar-brand i {
-            color: var(--success-color);
-            font-size: 1.75rem;
+        .content-body {
+            flex: 1;
+            padding: 2rem;
         }
 
-        .navbar-dark .navbar-nav .nav-link,
-        .navbar-light .navbar-nav .nav-link {
-            color: var(--text-primary) !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
+        /* Theme Toggle */
+        .theme-toggle {
+            border: none;
+            background: var(--card-bg);
+            color: var(--text-primary);
             border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-nav .nav-link:hover {
-            background-color: var(--border-color);
-            color: var(--primary-color) !important;
-        }
-
-        .navbar-nav .nav-link.active {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white !important;
-        }
-
-        /* Theme Toggle Button */
-        #themeToggle {
-            border-radius: 50%;
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            margin-left: 1rem;
+            cursor: pointer;
         }
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+        .theme-toggle:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            transform: rotate(15deg);
+        }
+
+        /* Mobile Toggle */
+        .mobile-sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            cursor: pointer;
         }
 
         /* Alert Styles */
         .alert {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            border-left: 4px solid;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%);
+        }
+
+        .alert-danger {
+            border-left-color: var(--danger-color);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+        }
+
+        .alert-info {
+            border-left-color: var(--info-color);
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
         }
 
         /* Button Styles */
@@ -121,283 +499,586 @@
             border-radius: 8px;
             font-weight: 500;
             padding: 0.5rem 1.5rem;
-            transition: all 0.3s ease;
+            border: none;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border: none;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
         .btn-success {
             background: linear-gradient(135deg, var(--success-color) 0%, var(--success-light) 100%);
-            border: none;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
         }
 
         /* Card Styles */
         .card {
             background: var(--card-bg);
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
         .card:hover {
-            box-shadow: 0 8px 16px rgba(0,0,0,.12);
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            transform: translateY(-2px);
         }
 
-        /* Footer Styles */
+        /* Footer */
         .footer {
-            background-color: var(--card-bg);
-            color: var(--text-primary);
+            background: var(--card-bg);
             border-top: 1px solid var(--border-color);
-            padding: 3rem 0 2rem;
+            padding: 1.5rem 2rem;
             margin-top: auto;
         }
 
-        .footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.3s ease;
+        /* FIXED: Proper breadcrumb spacing */
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1.5rem;
         }
 
-        .footer a:hover {
+        .breadcrumb-item a {
             color: var(--primary-color);
+            text-decoration: none;
         }
 
-        /* Utility Classes */
-        .gradient-text {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-secondary);
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .navbar-brand {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .mobile-sidebar-toggle {
+                display: block;
+            }
+
+            .content-body {
+                padding: 1rem;
+            }
+
+            .content-header {
+                padding: 1rem;
+            }
+
+            .sidebar-toggle-btn {
+                display: none;
+            }
+
+            .page-title {
                 font-size: 1.25rem;
             }
-            
-            #themeToggle {
-                margin-left: 0.5rem;
-            }
         }
 
-        /* Dark theme specific overrides */
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Dark theme adjustments */
         [data-theme="dark"] .card {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        [data-theme="dark"] .navbar {
-            box-shadow: 0 2px 8px rgba(0,0,0,.4);
+        [data-theme="dark"] .sidebar {
+            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+        }
+
+        /* Scrollbar Styling */
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: var(--border-color);
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('public.index') }}">
-                <i class="bi bi-tree-fill"></i>
-                <span>SHCAP</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    {% if session.user_id %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.profile') }}">
-                                <i class="bi bi-person-circle"></i> Profile
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <span class="nav-link fw-semibold">{{ session.user_name }}</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('public.demo') }}">
-                                <i class="bi bi-play-circle"></i> Demo
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">
-                                <i class="bi bi-person-plus"></i> Register
-                            </a>
-                        </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <button class="btn btn-sm btn-outline-secondary" id="themeToggle" title="Toggle theme">
-                            <i class="bi bi-moon-stars"></i>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="main-content">
-        <div class="container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            <div class="d-flex align-items-center">
-                                {% if category == 'success' %}
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                {% elif category == 'danger' %}
-                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                {% elif category == 'warning' %}
-                                    <i class="bi bi-exclamation-circle-fill me-2"></i>
-                                {% else %}
-                                    <i class="bi bi-info-circle-fill me-2"></i>
-                                {% endif %}
-                                <span>{{ message }}</span>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
+    <!-- FIXED: Added mobile overlay backdrop -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard.index') if session.user_id else url_for('public.index') }}" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">
+                        <i class="bi bi-tree-fill"></i>
+                    </div>
+                    <span class="sidebar-brand-text">SHCAP</span>
+                </a>
+                {% if session.user_id %}
+                <button class="sidebar-toggle-btn" id="sidebarToggleDesktop" title="Toggle Sidebar">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
                 {% endif %}
-            {% endwith %}
+            </div>
 
-            {% block content %}{% endblock %}
-        </div>
-    </div>
+            <nav class="sidebar-nav">
+                {% if session.user_id %}
+                    <!-- Main Navigation -->
+                    <div class="nav-section">
+                        <div class="nav-section-label">Main</div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('dashboard.index') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard.index' }}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                                <div class="nav-tooltip">Dashboard</div>
+                            </a>
+                        </div>
+                        {% if session.user_role == 'project_developer' %}
+                        <div class="nav-item">
+                            <a href="/agb/project/register" class="nav-link">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>New Project</span>
+                                <span class="badge bg-success">New</span>
+                                <div class="nav-tooltip">New Project</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/agb/projects" class="nav-link">
+                                <i class="bi bi-folder"></i>
+                                <span>My Projects</span>
+                                <div class="nav-tooltip">My Projects</div>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-tree-fill text-success" style="font-size: 2rem;"></i>
-                        <div class="ms-3">
-                            <h5 class="mb-0 fw-bold">SHCAP</h5>
-                            <small class="text-muted">SmallHolder Carbon Assessment</small>
+                    <!-- Tools -->
+                    <div class="nav-section">
+                        <div class="nav-section-label">Tools</div>
+                        <div class="nav-item">
+                            <a href="/agb/estimate" class="nav-link">
+                                <i class="bi bi-calculator"></i>
+                                <span>AGB Calculator</span>
+                                <div class="nav-tooltip">AGB Calculator</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="bi bi-graph-up"></i>
+                                <span>Analytics</span>
+                                <div class="nav-tooltip">Analytics</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                <span>Reports</span>
+                                <div class="nav-tooltip">Reports</div>
+                            </a>
                         </div>
                     </div>
-                    <p class="text-muted">Empowering smallholder farmers through accurate carbon assessment and ML-powered Above Ground Biomass calculations.</p>
-                </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4 mb-lg-0">
-                    <h6 class="fw-bold mb-3">Platform</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url_for('public.index') }}">Home</a></li>
-                        <li class="mb-2"><a href="{{ url_for('public.demo') }}">Demo</a></li>
-                        <li class="mb-2"><a href="#">About</a></li>
-                        <li class="mb-2"><a href="#">Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4 mb-lg-0">
-                    <h6 class="fw-bold mb-3">Resources</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#">Documentation</a></li>
-                        <li class="mb-2"><a href="#">API</a></li>
-                        <li class="mb-2"><a href="#">Support</a></li>
-                        <li class="mb-2"><a href="#">Blog</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4 mb-lg-0">
-                    <h6 class="fw-bold mb-3">Legal</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#">Privacy</a></li>
-                        <li class="mb-2"><a href="#">Terms</a></li>
-                        <li class="mb-2"><a href="#">Cookies</a></li>
-                        <li class="mb-2"><a href="#">License</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 col-md-4">
-                    <h6 class="fw-bold mb-3">Connect</h6>
-                    <div class="d-flex gap-2">
-                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-twitter"></i>
-                        </a>
-                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-linkedin"></i>
-                        </a>
-                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-github"></i>
+
+                    <!-- Administration -->
+                    {% if session.user_role == 'admin' %}
+                    <div class="nav-section">
+                        <div class="nav-section-label">Administration</div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('dashboard.admin_users') }}" class="nav-link">
+                                <i class="bi bi-people"></i>
+                                <span>User Management</span>
+                                <div class="nav-tooltip">User Management</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="bi bi-gear"></i>
+                                <span>System Settings</span>
+                                <div class="nav-tooltip">System Settings</div>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <!-- Public Navigation -->
+                    <div class="nav-section">
+                        <div class="nav-section-label">Platform</div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('public.index') }}" class="nav-link {{ 'active' if request.endpoint == 'public.index' }}">
+                                <i class="bi bi-house"></i>
+                                <span>Home</span>
+                                <div class="nav-tooltip">Home</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('public.demo') }}" class="nav-link {{ 'active' if request.endpoint == 'public.demo' }}">
+                                <i class="bi bi-play-circle"></i>
+                                <span>Demo</span>
+                                <div class="nav-tooltip">Demo</div>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('public.about') if 'public.about' in url_map else '#' }}" class="nav-link">
+                                <i class="bi bi-info-circle"></i>
+                                <span>About</span>
+                                <div class="nav-tooltip">About</div>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Account -->
+                <div class="nav-section">
+                    <div class="nav-section-label">Account</div>
+                    {% if session.user_id %}
+                    <div class="nav-item">
+                        <a href="{{ url_for('dashboard.profile') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard.profile' }}">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Profile</span>
+                            <div class="nav-tooltip">Profile</div>
                         </a>
                     </div>
+                    <div class="nav-item">
+                        <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                            <div class="nav-tooltip">Logout</div>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="nav-item">
+                        <a href="{{ url_for('auth.login') }}" class="nav-link {{ 'active' if request.endpoint == 'auth.login' }}">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Login</span>
+                            <div class="nav-tooltip">Login</div>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ url_for('auth.register') }}" class="nav-link {{ 'active' if request.endpoint == 'auth.register' }}">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Register</span>
+                            <div class="nav-tooltip">Register</div>
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
+            </nav>
+
+            {% if session.user_id %}
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ session.user_name[0]|upper }}{{ session.user_name.split()[-1][0]|upper if session.user_name.split()|length > 1 else '' }}
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name">{{ session.user_name }}</div>
+                        <div class="user-role">
+                            {% if session.user_role == 'admin' %}Administrator
+                            {% elif session.user_role == 'researcher' %}Researcher
+                            {% else %}Project Developer{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary w-100 btn-sm theme-toggle" id="themeToggle">
+                    <i class="bi bi-moon-stars"></i><span class="ms-2">Theme</span>
+                </button>
             </div>
-            
-            <hr class="my-4" style="border-color: var(--border-color);">
-            
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <p class="text-muted small mb-0">&copy; 2024 SHCAP. All rights reserved.</p>
+            {% endif %}
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <header class="content-header">
+                <div class="d-flex align-items-center">
+                    <button class="mobile-sidebar-toggle" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="text-muted small mb-0">
-                        Built with <i class="bi bi-heart-fill text-danger"></i> for climate action
-                    </p>
+                <div class="header-actions">
+                    {% if not session.user_id %}
+                    <button class="theme-toggle" id="themeToggleMobile">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    {% endif %}
                 </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Breadcrumb Navigation -->
+                {% block breadcrumb %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') if session.user_id else url_for('public.index') }}">Home</a></li>
+                        {% block breadcrumb_items %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endblock %}
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center">
+                                    {% if category == 'success' %}
+                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                    {% elif category == 'danger' %}
+                                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                                    {% else %}
+                                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                    {% endif %}
+                                    <span class="flex-grow-1">{{ message }}</span>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Main Content Block -->
+                {% block content %}{% endblock %}
             </div>
-        </div>
-    </footer>
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-0">
+                                &copy; 2024 <strong>SHCAP</strong>. Empowering climate action through technology.
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="text-muted small mb-0">
+                                Built with <i class="bi bi-heart-fill text-danger mx-1"></i> for a sustainable future
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Theme Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const mobileOverlay = document.getElementById('mobileOverlay');
             const htmlElement = document.documentElement;
-            
-            // Check for saved theme preference or default to light mode
+
+            // Theme Management
             const currentTheme = localStorage.getItem('theme') || 'light';
             htmlElement.setAttribute('data-theme', currentTheme);
             updateThemeIcon(currentTheme);
-            
-            if (themeToggle) {
-                themeToggle.addEventListener('click', function() {
-                    const theme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-                    htmlElement.setAttribute('data-theme', theme);
-                    localStorage.setItem('theme', theme);
-                    updateThemeIcon(theme);
-                });
-            }
-            
-            function updateThemeIcon(theme) {
-                const icon = themeToggle.querySelector('i');
-                if (theme === 'dark') {
-                    icon.className = 'bi bi-sun-fill';
-                } else {
-                    icon.className = 'bi bi-moon-stars';
+
+            function setupThemeToggle(button) {
+                if (button) {
+                    button.addEventListener('click', function() {
+                        const theme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                        htmlElement.setAttribute('data-theme', theme);
+                        localStorage.setItem('theme', theme);
+                        updateThemeIcon(theme);
+                    });
                 }
             }
+
+            setupThemeToggle(themeToggle);
+            setupThemeToggle(themeToggleMobile);
+
+            function updateThemeIcon(theme) {
+                const icons = document.querySelectorAll('.theme-toggle i');
+                icons.forEach(icon => {
+                    if (theme === 'dark') {
+                        icon.className = 'bi bi-sun-fill';
+                    } else {
+                        icon.className = 'bi bi-moon-stars';
+                    }
+                });
+            }
+
+            // FIXED: Sidebar Minimization with proper state management
+            if (sidebarToggleDesktop && sidebar && mainContent) {
+                const isMinimized = localStorage.getItem('sidebarMinimized') === 'true';
+                
+                if (isMinimized) {
+                    sidebar.classList.add('minimized');
+                    mainContent.classList.add('sidebar-minimized');
+                }
+
+                sidebarToggleDesktop.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sidebar.classList.toggle('minimized');
+                    mainContent.classList.toggle('sidebar-minimized');
+                    
+                    const isNowMinimized = sidebar.classList.contains('minimized');
+                    localStorage.setItem('sidebarMinimized', isNowMinimized);
+                });
+            }
+
+            // FIXED: Mobile Sidebar Toggle with overlay
+            if (mobileSidebarToggle && sidebar && mobileOverlay) {
+                mobileSidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sidebar.classList.add('mobile-open');
+                    mobileOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close sidebar when clicking overlay
+                mobileOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    mobileOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // FIXED: Better tooltip positioning for minimized sidebar
+            if (sidebar) {
+                const navLinks = sidebar.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    const tooltip = link.querySelector('.nav-tooltip');
+                    if (tooltip) {
+                        link.addEventListener('mouseenter', function() {
+                            if (sidebar.classList.contains('minimized')) {
+                                const rect = link.getBoundingClientRect();
+                                tooltip.style.left = (rect.right + 10) + 'px';
+                                tooltip.style.top = (rect.top + rect.height / 2) + 'px';
+                                tooltip.style.transform = 'translateY(-50%)';
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Close mobile sidebar on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768 && sidebar) {
+                    sidebar.classList.remove('mobile-open');
+                    if (mobileOverlay) {
+                        mobileOverlay.classList.remove('active');
+                    }
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Auto-dismiss alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+
+            // Add loading state to forms
+            const forms = document.querySelectorAll('form[data-loading]');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('[type="submit"]');
+                    if (submitBtn) {
+                        setLoadingState(submitBtn, true);
+                    }
+                });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#') {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }
+                });
+            });
         });
+
+        // Utility function to show loading state
+        function setLoadingState(button, isLoading) {
+            if (isLoading) {
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = '<span class="loading-spinner me-2"></span> Loading...';
+                button.disabled = true;
+            } else {
+                button.innerHTML = button.dataset.originalText || button.innerHTML;
+                button.disabled = false;
+                delete button.dataset.originalText;
+            }
+        }
+
+        // Utility function for toast notifications (optional)
+        function showToast(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                    <span class="flex-grow-1">${message}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const contentBody = document.querySelector('.content-body');
+            if (contentBody) {
+                contentBody.insertBefore(alertDiv, contentBody.firstChild);
+                setTimeout(() => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+                    bsAlert.close();
+                }, 5000);
+            }
+        }
     </script>
     
     {% block extra_js %}{% endblock %}
