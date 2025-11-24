@@ -85,6 +85,12 @@ def create_project():
                     'error': f'Missing required field: {field}'
                 }), 400
         
+        # Determine initial status based on whether we have estimates
+        has_estimates = data.get('estimated_agb') or data.get('estimated_carbon') or data.get('estimated_co2')
+        initial_status = 'in_progress' if has_estimates else 'draft'
+        
+        print(f" Project creation - Has estimates: {has_estimates}, Status: {initial_status}")
+        
         # Create the project
         project = Project.create(
             user_id=user_id,
@@ -97,11 +103,12 @@ def create_project():
             boundary_coordinates=data.get('boundary_coordinates', []),
             estimated_agb=data.get('estimated_agb'),
             estimated_carbon=data.get('estimated_carbon'),
-            estimated_co2=data.get('estimated_co2')
+            estimated_co2=data.get('estimated_co2'),
+            status=initial_status
         )
         
         if project:
-            print(f" Project created with ID: {project.id}")
+            print(f" Project created successfully with ID: {project.id}, Status: {project.status}")
             return jsonify({
                 'success': True,
                 'message': 'Project created successfully!',
@@ -117,6 +124,91 @@ def create_project():
         print(f" Error creating project: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@agb_bp.route('/project/<int:project_id>/update-status', methods=['POST'])
+@login_required
+@two_factor_verified
+def update_project_status(project_id):
+    """Update project status"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        # Validate status
+        valid_statuses = ['draft', 'in_progress', 'completed']
+        if new_status not in valid_statuses:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'
+            }), 400
+        
+        project = Project.get_by_id(project_id)
+        
+        if not project:
+            return jsonify({
+                'success': False,
+                'error': 'Project not found'
+            }), 404
+        
+        # Check if user owns this project
+        if project.user_id != session.get('user_id'):
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
+        # Update status
+        project.update_status(new_status)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Project status updated to {new_status}',
+            'project': project.to_dict()
+        })
+        
+    except Exception as e:
+        print(f" Error updating project status: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@agb_bp.route('/project/<int:project_id>/complete', methods=['POST'])
+@login_required
+@two_factor_verified
+def complete_project(project_id):
+    """Mark project as completed"""
+    try:
+        project = Project.get_by_id(project_id)
+        
+        if not project:
+            return jsonify({
+                'success': False,
+                'error': 'Project not found'
+            }), 404
+        
+        # Check if user owns this project
+        if project.user_id != session.get('user_id'):
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
+        # Update status to completed
+        project.update_status('completed')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Project marked as completed!',
+            'project': project.to_dict()
+        })
+        
+    except Exception as e:
+        print(f" Error completing project: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -162,7 +254,7 @@ def test_project_creation():
     """Test project creation with current user session"""
     try:
         user_id = session.get('user_id')
-        print(f"🧪 Testing project creation for user_id: {user_id} (type: {type(user_id)})")
+        print(f" Testing project creation for user_id: {user_id} (type: {type(user_id)})")
         
         # Test data
         test_project = Project.create(
@@ -192,7 +284,7 @@ def test_project_creation():
             }), 500
             
     except Exception as e:
-        print(f"❌ Project creation test error: {e}")
+        print(f" Project creation test error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -221,23 +313,16 @@ def get_user_projects():
             'error': str(e)
         }), 500
 
-#  ==================== AGB PREDICTION ROUTES ====================
+# ==================== AGB PREDICTION ROUTES ====================
 
-@agb_bp.route('/predict', methods=['POST'])  # ONLY ONE ROUTE DECORATOR
+@agb_bp.route('/predict', methods=['POST'])
 @login_required  
 @two_factor_verified
 def predict_agb():
     """API endpoint for AGB prediction"""
-    print("🎯 ========== AGB PREDICTION REQUEST START ==========")
+    print(" ========== AGB PREDICTION REQUEST START ==========")
     
     try:
-        # Debug: Print request details
-        # print(f"📦 Request method: {request.method}")
-        # print(f"📦 Content-Type: {request.content_type}")
-        # print(f"📦 Headers: {dict(request.headers)}")
-        # print(f"📦 Form data: {request.form}")
-        # print(f"📦 JSON data: {request.get_data()}")
-        
         # Check if we have JSON data
         if not request.is_json:
             print(" Request is not JSON")
@@ -272,8 +357,6 @@ def predict_agb():
         
         # Extract features (mock for now)
         features = extract_features_for_point(latitude, longitude)
-        # print(f" Features extracted: {len(features)} features")
-        # print(f" First few features: {features[:5]}")
         
         # Predict AGB
         print(" Loading ML model...")
@@ -282,13 +365,13 @@ def predict_agb():
         
         print(" Making prediction...")
         agb_estimate = agb_predictor.predict(features)
-        print(f"🌿 AGB Prediction: {agb_estimate} Mg/ha")
+        # print(f" AGB Prediction: {agb_estimate} Mg/ha")
         
         # Calculate carbon equivalent
         carbon_stock = agb_estimate * 0.5
         co2_equivalent = carbon_stock * 3.67
         
-        print(" ========== PREDICTION SUCCESSFUL ==========")
+        # print(" ========== PREDICTION SUCCESSFUL ==========")
         return jsonify({
             'success': True,
             'agb_estimate': round(agb_estimate, 2),

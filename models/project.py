@@ -24,9 +24,10 @@ class Project:
         self.updated_at = updated_at
 
     @staticmethod
+    @staticmethod
     def create(user_id, project_name, project_type, country, region, 
-               description, area_hectares, boundary_coordinates,
-               estimated_agb=None, estimated_carbon=None, estimated_co2=None):
+            description, area_hectares, boundary_coordinates,
+            estimated_agb=None, estimated_carbon=None, estimated_co2=None, status='draft'):
         """Create a new project - let database generate SERIAL ID"""
         
         print(f" Creating project for user_id: {user_id}")
@@ -38,7 +39,7 @@ class Project:
         if isinstance(boundary_coordinates, (list, dict)):
             boundary_coordinates = json.dumps(boundary_coordinates)
         
-        #  FIX: Remove ID from INSERT - let database generate SERIAL ID automatically
+        # FIX: Remove ID from INSERT - let database generate SERIAL ID automatically
         query = """
             INSERT INTO projects (
                 user_id, project_name, project_type, country, region,
@@ -47,20 +48,21 @@ class Project:
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id, project_name, project_type, country, region,
-                      description, area_hectares, boundary_coordinates,
-                      estimated_agb, estimated_carbon, estimated_co2, status,
-                      created_at, updated_at
+                    description, area_hectares, boundary_coordinates,
+                    estimated_agb, estimated_carbon, estimated_co2, status,
+                    created_at, updated_at
         """
         
         params = (
             user_id_str, project_name, project_type, country, region,
             description, area_hectares, boundary_coordinates,
-            estimated_agb, estimated_carbon, estimated_co2, 'draft'
+            estimated_agb, estimated_carbon, estimated_co2, status
         )
         
         print(f" Executing query with {len(params)} parameters")
         print(f" Project Name: {project_name}")
         print(f" User ID: {user_id_str}")
+        print(f" Status: {status}")
         
         result = execute_query(query, params, fetch_one=True)
         

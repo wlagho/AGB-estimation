@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
+from routes.agb import agb_bp
 
 load_dotenv()
 
@@ -20,7 +21,11 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@shcap.com')
 
+    #debug line
+    print(f" CSRF Enabled: {app.config.get('WTF_CSRF_ENABLED', 'Not Set')}")
     csrf = CSRFProtect(app)
+
+    csrf.exempt(agb_bp)
 
     from routes.auth import auth_bp
     from routes.dashboard import dashboard_bp
@@ -29,6 +34,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(public_bp)
+    app.register_blueprint(agb_bp, url_prefix='/agb')
 
     return app
 

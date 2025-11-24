@@ -28,8 +28,8 @@ def get_db_connection():
         conn.close()
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
-    print(f" DATABASE: Executing query: {query}")
-    print(f" DATABASE: Params: {params}")
+    # print(f" DATABASE: Executing query: {query}")
+    # print(f" DATABASE: Params: {params}")
     
     # Process parameters to handle UUIDs
     processed_params = []
@@ -48,11 +48,11 @@ def execute_query(query, params=None, fetch_one=False, fetch_all=False):
                 
                 if fetch_one:
                     result = cursor.fetchone()
-                    print(f" DATABASE: Fetch one result: {result}")
+                    # print(f" DATABASE: Fetch one result: {result}")
                     return result
                 elif fetch_all:
                     result = cursor.fetchall()
-                    print(f" DATABASE: Fetch all results: {len(result)} rows")
+                    # print(f" DATABASE: Fetch all results: {len(result)} rows")
                     return result
                 
                 print(f" DATABASE: Row count: {cursor.rowcount}")
