@@ -24,7 +24,6 @@ class Project:
         self.updated_at = updated_at
 
     @staticmethod
-    @staticmethod
     def create(user_id, project_name, project_type, country, region, 
             description, area_hectares, boundary_coordinates,
             estimated_agb=None, estimated_carbon=None, estimated_co2=None, status='draft'):
@@ -95,7 +94,7 @@ class Project:
     def get_by_user(user_id):
         """Get all projects for a user"""
         
-        user_id_str = str(user_id) if user_id else None
+        # user_id_str = str(user_id) if user_id else None
         
         query = """
             SELECT id, user_id, project_name, project_type, country, region,
@@ -107,7 +106,7 @@ class Project:
             ORDER BY created_at DESC
         """
         
-        results = execute_query(query, (user_id_str,), fetch_all=True)
+        results = execute_query(query, (user_id,), fetch_all=True)
         
         if results:
             return [Project(**row) for row in results]
@@ -178,9 +177,18 @@ class Project:
         """Delete the project"""
         query = "DELETE FROM projects WHERE id = %s"
         execute_query(query, (self.id,))
-
+    
     def to_dict(self):
         """Convert project to dictionary"""
+        # Handle boundary_coordinates safely
+        if isinstance(self.boundary_coordinates, str):
+            try:
+                boundary_coords = json.loads(self.boundary_coordinates)
+            except (json.JSONDecodeError, TypeError):
+                boundary_coords = []
+        else:
+            boundary_coords = self.boundary_coordinates or []
+        
         return {
             'id': self.id,
             'user_id': str(self.user_id) if self.user_id else None,
@@ -190,11 +198,12 @@ class Project:
             'region': self.region,
             'description': self.description,
             'area_hectares': float(self.area_hectares) if self.area_hectares else 0,
-            'boundary_coordinates': json.loads(self.boundary_coordinates) if isinstance(self.boundary_coordinates, str) else self.boundary_coordinates,
-            'estimated_agb': float(self.estimated_agb) if self.estimated_agb else 0,
-            'estimated_carbon': float(self.estimated_carbon) if self.estimated_carbon else 0,
-            'estimated_co2': float(self.estimated_co2) if self.estimated_co2 else 0,
+            'boundary_coordinates': boundary_coords,
+            'estimated_agb': float(self.estimated_agb) if self.estimated_agb else None,
+            'estimated_carbon': float(self.estimated_carbon) if self.estimated_carbon else None,
+            'estimated_co2': float(self.estimated_co2) if self.estimated_co2 else None,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
+    
